@@ -144,12 +144,6 @@
     <None Include="Resources\Open-icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\VectoEngine_6.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\VectoEngine_6 %28Custom%29.jpg" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\vecto-engine-test %28Custom%29.jpg" />
   </ItemGroup>
   <ItemGroup>
