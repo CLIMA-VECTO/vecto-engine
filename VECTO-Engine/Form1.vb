@@ -19,13 +19,19 @@ Public Class Form1
         Lic.AppCode = AppName
         Lic.AppVersion = AppVersion
 
+#If DEBUG Then
+		Const LicCheck As Boolean = False
+#Else
+		Const LicCheck as Boolean = True
+#End If
+
         'Lizenz checken
-        If Not Lic.LICcheck() Then
-            MsgBox(Lic.FailMsg, MsgBoxStyle.Critical)
-            Lic.CreateActFile(MyAppPath & "ActivationCode.dat")
-            MsgBox("Activation code created under: " & MyAppPath & "ActivationCode.dat")
-            Me.Close()
-        End If
+		If LicCheck And Not Lic.LICcheck() Then
+			MsgBox(Lic.FailMsg, MsgBoxStyle.Critical)
+			Lic.CreateActFile(MyAppPath & "ActivationCode.dat")
+			MsgBox("Activation code created under: " & MyAppPath & "ActivationCode.dat")
+			Me.Close()
+		End If
 
         ' Abfragen ob Ablauf der License bevorsteht
         If Lic.TimeWarn Then
