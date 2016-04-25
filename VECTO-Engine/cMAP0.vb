@@ -1,4 +1,8 @@
-﻿Public Class cMAP0
+﻿Imports System.Security.Cryptography
+Imports System.Text
+Imports System.Xml
+
+Public Class cMAP0
 	Public FilePath As String
 
 	Private MapPoints As New List(Of cMapPoint)
@@ -650,6 +654,76 @@ lbEr:
 
 		Return True
 	End Function
+
+	Public Sub WriteXmlComponentFile(filename As String, model As String, job As cJob)
+		Dim xsi As XNamespace = XNamespace.Get("http://www.w3.org/2001/XMLSchema-instance")
+		Dim xsd As XNamespace = XNamespace.Get("http://www.w3.org/2001/XMLSchema")
+		Dim vectoNs As XNamespace = "VectoInput.XSD"
+
+		Dim report As XDocument = New XDocument(New XDeclaration("1.0", "utf-8", "yes"))
+		'report.Add()
+
+		Dim hasher = MD5Cng.Create()
+		Dim hash As Byte() = hasher.ComputeHash(Encoding.UTF8.GetBytes(model))
+		Dim hastString As String = Convert.ToBase64String(hash)
+
+		Dim fcMap As XElement = New XElement("FuelConsumptionMap")
+		For Each rl In RPMlists.Values
+			For Each mp In rl.MapPoints
+				'file.WriteLine(mp.nU, mp.Tq, mp.FC)
+				fcMap.Add(New XElement("Entry",
+									   New XAttribute("engineSpeed", mp.nU),
+									   New XAttribute("torque", mp.Tq),
+									   New XAttribute("fuelConsumption", mp.FC)))
+			Next
+		Next
+		Dim fldCurve = New XElement("FullLoadAndDragCurve")
+		For i = 0 To R85.iDim
+			Dim nU As Single = R85.LnU(i)
+			Dim Tq As Single = R85.LTq(i)
+			Dim DragTq As Single = Drag.Tq(nU)
+			Dim TqMaxMap As Single = TqMax(nU)
+			If Tq > TqMaxMap Then
+				Tq = TqMaxMap
+			End If
+			'file.WriteLine(nU, Tq, DragTq)
+			fldCurve.Add(New XElement("Entry",
+									  New XAttribute("engineSpeed", nU),
+									  New XAttribute("maxTorque", Tq),
+									  New XAttribute("dragTorque", DragTq)))
+		Next
+
+		report.Add(New XElement("VectoInput",
+								New XAttribute("type", "declaration"),
+								New XAttribute("schemaVersion", "0.3"),
+								New XAttribute(XNamespace.Xmlns + "xsi", "http://www.w3.org/2001/XMLSchema-instance"),
+								New XAttribute(xsi + "noNamespaceSchemaLocation", "VectoInput.xsd"),
+								New XElement("Component",
+											 New XElement("VectoComponentData",
+														  New XAttribute(xsi + "type", "Engine"),
+														  New XAttribute("mode", "declaration"),
+														  New XAttribute("id", hastString),
+														  New XElement("Vendor", "Not Available"),
+														  New XElement("Creator", "Not Available"),
+														  New XElement("Date",
+																	   XmlConvert.ToString(DateTime.Now,
+																						   XmlDateTimeSerializationMode.Utc)),
+														  New XElement("MakeAndModel", "Not Available"),
+														  New XElement("TypeId", "Not Available"),
+														  New XElement("AppVersion", AppName & " " & AppVersionForm),
+														  New XElement("Displacement", 0.0),
+														  New XElement("IdlingSpeed", job.n_idle),
+														  New XElement("WHTCUrban", job.WHTCurbanFactor),
+														  New XElement("WHTCRural", job.WHTCruralFactor),
+														  New XElement("WHTCMotorway", job.WHTCmotorwayFactor),
+														  fcMap,
+														  fldCurve
+														  )
+											 )
+								)
+				   )
+		report.Save(filename)
+	End Sub
 
 	Public Function fFCdelaunay_Intp(ByVal nU As Single, ByVal Tq As Single) As Single
 		Dim val As Single
