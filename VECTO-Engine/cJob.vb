@@ -151,7 +151,7 @@ Public Class cJob
         WorkerMsg(tMsgID.Normal, "Writing output files")
         If Not MAP.WriteMap(OutPath & fFILE(MapFile, False) & "_mod.vmap") Then Return False
         If Not MAP.WriteFLD(OutPath & fFILE(MapFile, False) & "_" & fFILE(R85TqFile, False) & ".vfld") Then Return False
-        If Not WriteTransFile(OutPath & "WHTC-Correction-Factors.xml") Then Return False
+        'If Not WriteTransFile(OutPath & "WHTC-Correction-Factors.xml") Then Return False
 
 
         RpmWarnings()
