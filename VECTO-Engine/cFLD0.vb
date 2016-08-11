@@ -12,7 +12,10 @@
 	Public n_lo As Single
 	Public n_hi As Single
 	Public n_pref As Single
-	Public n_95h As Single
+    Public n_95h As Single
+    Public n_57 As Single
+    Public n_A As Single
+    Public n_B As Single
 
 
 	'Read, sort and check step size
@@ -146,6 +149,10 @@ lbEr:
             WorkerMsg(tMsgID.Err, "Failed to calculate n_hi for " & InfoStringFLC & "!")
             Return False
         End If
+
+        n_57 = 0.565 * (0.45 * n_lo + 0.45 * n_pref + 0.1 * n_hi - n_idle) * 2.0327 + n_idle
+        n_A = n_57 - 0.05 * (n_95h - n_idle)
+        n_B = n_57 + 0.08 * (n_95h - n_idle)
 
         Return True
 

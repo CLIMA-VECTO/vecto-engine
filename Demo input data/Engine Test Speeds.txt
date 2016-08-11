@@ -1,5 +1,0 @@
-n_idle: 600 rpm
-n_lo: 1090 rpm
-n_pref: 1530 rpm
-n_95h: 2420 rpm
-n_hi: 2600 rpm

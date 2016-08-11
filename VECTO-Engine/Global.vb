@@ -2,7 +2,7 @@
 
     Public Const AppVersion As String = "1.0"
     Public Const AppName As String = "VECTO-Engine"
-    Public Const AppVersionForm As String = " 1.02b"
+    Public Const AppVersionForm As String = " 1.1"
 
 	Public Worker As System.ComponentModel.BackgroundWorker
 	Public MyAppPath As String
@@ -10,12 +10,13 @@
 
 	Public sKey As csKey
 
-    Public Const TqStepTol As Single = 10
+    Public Const TqStepTol As Single = 20
     Public Const nUStepTol As Single = 5
 
     Public SetCulture As Boolean
 
     Public NumWarnings As Integer
+    Public CalcMode As Integer = 0
 
 
 

@@ -47,7 +47,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ivtlic">
-      <HintPath>..\Libraries\ivtlic.dll</HintPath>
+      <HintPath>J:\TE-Em\Emissionsmodelle\Lizenzen\Lizenz-DLL\bin\Release\ivtlic.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -82,11 +82,13 @@
     <Compile Include="cENG.vb" />
     <Compile Include="cFile V3.vb" />
     <Compile Include="cFLD0.vb" />
+    <Compile Include="cJobPrecalc.vb" />
     <Compile Include="cJSONparser.vb" />
     <Compile Include="cMAP0.vb" />
     <Compile Include="cPT1.vb" />
     <Compile Include="cRegression.vb" />
     <Compile Include="cSubPath.vb" />
+    <Compile Include="cWHSC.vb" />
     <Compile Include="cWHTC.vb" />
     <Compile Include="Enum.vb" />
     <Compile Include="Form1.vb">
