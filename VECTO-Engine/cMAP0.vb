@@ -5,10 +5,10 @@ Imports System.Xml
 Public Class cMAP0
 	Public FilePath As String
 
-	Private MapPoints As New List(Of cMapPoint)
+	Private ReadOnly MapPoints As New List(Of cMapPoint)
 	Private iMapDim As Integer
 
-	Private RPMlists As New SortedDictionary(Of Integer, cRPMlist)
+	Private ReadOnly RPMlists As New SortedDictionary(Of Integer, cRPMlist)
 	Public R49 As cFLD0
 	Public R85 As cFLD0
 	Public Drag As cFLD0
@@ -588,7 +588,7 @@ lbEr:
 	End Function
 
 
-	Public Function WriteMap(ByVal path As String) As Boolean
+	Public Function WriteMap(path As String) As Boolean
 		Dim file As New cFile_V3
 		Dim mp As cMapPoint
 		Dim rl As cRPMlist
@@ -612,7 +612,7 @@ lbEr:
 		Return True
 	End Function
 
-	Public Function WriteFLD(ByVal path As String) As Boolean
+	Public Function WriteFLD(path As String) As Boolean
 		Dim file As New cFile_V3
 		Dim nU As Single
 		Dim Tq As Single
@@ -656,28 +656,33 @@ lbEr:
 	End Function
 
 	Public Sub WriteXmlComponentFile(filename As String, model As String, job As cJob)
+
+		Dim SchemaLocationBaseUrl = "http://www.ivt.tugraz.at/VECTO/"
+		Dim SchemaVersion = "0.6"
+		Dim tns As XNamespace = "urn:tugraz:ivt:VectoAPI:DeclarationDefinitions:v0.6"
+		Dim rootNamespace As XNamespace = "urn:tugraz:ivt:VectoAPI:DeclarationComponent:v0.6"
+
 		Dim xsi As XNamespace = XNamespace.Get("http://www.w3.org/2001/XMLSchema-instance")
 		Dim xsd As XNamespace = XNamespace.Get("http://www.w3.org/2001/XMLSchema")
-		Dim vectoNs As XNamespace = "VectoInput.XSD"
 
-		Dim report As XDocument = New XDocument(New XDeclaration("1.0", "utf-8", "yes"))
+		Dim report = New XDocument(New XDeclaration("1.0", "utf-8", "yes"))
 		'report.Add()
 
 		Dim hasher = MD5Cng.Create()
 		Dim hash As Byte() = hasher.ComputeHash(Encoding.UTF8.GetBytes(model))
 		Dim hastString As String = Convert.ToBase64String(hash)
 
-		Dim fcMap As XElement = New XElement("FuelConsumptionMap")
+		Dim fcMap = New XElement(tns + "FuelConsumptionMap")
 		For Each rl In RPMlists.Values
 			For Each mp In rl.MapPoints
 				'file.WriteLine(mp.nU, mp.Tq, mp.FC)
-				fcMap.Add(New XElement("Entry",
+				fcMap.Add(New XElement(tns + "Entry",
 									   New XAttribute("engineSpeed", mp.nU),
 									   New XAttribute("torque", mp.Tq),
 									   New XAttribute("fuelConsumption", mp.FC)))
 			Next
 		Next
-		Dim fldCurve = New XElement("FullLoadAndDragCurve")
+		Dim fldCurve = New XElement(tns + "FullLoadAndDragCurve")
 		For i = 0 To R85.iDim
 			Dim nU As Single = R85.LnU(i)
 			Dim Tq As Single = R85.LTq(i)
@@ -687,35 +692,38 @@ lbEr:
 				Tq = TqMaxMap
 			End If
 			'file.WriteLine(nU, Tq, DragTq)
-			fldCurve.Add(New XElement("Entry",
+			fldCurve.Add(New XElement(tns + "Entry",
 									  New XAttribute("engineSpeed", nU),
 									  New XAttribute("maxTorque", Tq),
 									  New XAttribute("dragTorque", DragTq)))
 		Next
 
-		report.Add(New XElement("VectoInput",
-								New XAttribute("type", "declaration"),
-								New XAttribute("schemaVersion", "0.3"),
-								New XAttribute(XNamespace.Xmlns + "xsi", "http://www.w3.org/2001/XMLSchema-instance"),
-								New XAttribute(xsi + "noNamespaceSchemaLocation", "VectoInput.xsd"),
-								New XElement("Component",
-											 New XElement("VectoComponentData",
-														  New XAttribute(xsi + "type", "Engine"),
-														  New XAttribute("mode", "declaration"),
+
+		report.Add(New XElement(tns + "VectoInputDeclaration",
+								New XAttribute("schemaVersion", SchemaVersion),
+								New XAttribute(XNamespace.Xmlns + "xsi", xsi.NamespaceName),
+								New XAttribute("xmlns", tns),
+								New XAttribute(XNamespace.Xmlns + "tns", rootNamespace),
+								New XAttribute(xsi + "schemaLocation",
+											   String.Format("{0} {1}VectoComponent.xsd", rootNamespace, SchemaLocationBaseUrl)),
+								New XElement(rootNamespace + "Engine",
+											 New XElement(tns + "Data",
 														  New XAttribute("id", hastString),
-														  New XElement("Vendor", "Not Available"),
-														  New XElement("Creator", "Not Available"),
-														  New XElement("Date",
+														  New XElement(tns + "Vendor", "Not Available"),
+														  New XElement(tns + "Creator", "Not Available"),
+														  New XElement(tns + "Date",
 																	   XmlConvert.ToString(DateTime.Now,
-																						   XmlDateTimeSerializationMode.Utc)),
-														  New XElement("MakeAndModel", "Not Available"),
-														  New XElement("TypeId", "Not Available"),
-														  New XElement("AppVersion", AppName & " " & AppVersionForm),
-														  New XElement("Displacement", 0.0),
-														  New XElement("IdlingSpeed", job.n_idle),
-														  New XElement("WHTCUrban", job.WHTCurbanFactor),
-														  New XElement("WHTCRural", job.WHTCruralFactor),
-														  New XElement("WHTCMotorway", job.WHTCmotorwayFactor),
+																						   XmlDateTimeSerializationMode.
+																							  Utc)),
+														  New XElement(tns + "MakeAndModel", "Not Available"),
+														  New XElement(tns + "TypeId", "Not Available"),
+														  New XElement(tns + "AppVersion", AppName & " " & AppVersionForm),
+														  New XElement(tns + "Displacement", 0.0),
+														  New XElement(tns + "IdlingSpeed", job.n_idle),
+														  New XElement(tns + "WHTCUrban", job.WHTCurbanFactor),
+														  New XElement(tns + "WHTCRural", job.WHTCruralFactor),
+														  New XElement(tns + "WHTCMotorway", job.WHTCmotorwayFactor),
+														  New XElement(tns + "ColdHotBalancingFactor", 1.0),
 														  fcMap,
 														  fldCurve
 														  )
@@ -725,7 +733,7 @@ lbEr:
 		report.Save(filename)
 	End Sub
 
-	Public Function fFCdelaunay_Intp(ByVal nU As Single, ByVal Tq As Single) As Single
+	Public Function fFCdelaunay_Intp(nU As Single, Tq As Single) As Single
 		Dim val As Single
 
 		val = FuelMap.Intpol(nU, Tq)
@@ -739,7 +747,7 @@ lbEr:
 		End If
 	End Function
 
-	Public Function TqMax(ByVal nU As Single) As Single
+	Public Function TqMax(nU As Single) As Single
 		Dim rpm As Integer
 		Dim rpm0 As Integer
 
@@ -765,7 +773,7 @@ lbInt:
 			RPMlists(rpm0).MapPoints.Last.Tq
 	End Function
 
-	Public Function TqMin(ByVal nU As Single) As Single
+	Public Function TqMin(nU As Single) As Single
 		Dim rpm As Integer
 		Dim rpm0 As Integer
 
@@ -792,23 +800,23 @@ lbInt:
 	End Function
 
 	Private Class cRPMlist
-		Public TargetRPM As Integer
+		Public ReadOnly TargetRPM As Integer
 		Public MapPoints As New List(Of cMapPoint)
 
-		Public Sub New(ByVal rpm As Integer)
+		Public Sub New(rpm As Integer)
 			TargetRPM = rpm
 		End Sub
 	End Class
 
 	Private Class cMapPoint
-		Public nU As Single
-		Public Tq As Single
-		Public FC As Single
+		Public ReadOnly nU As Single
+		Public ReadOnly Tq As Single
+		Public ReadOnly FC As Single
 		Public MarkedForDeath As Boolean
 		Public MarkedForDeathAfterR85Cut As Boolean
 
 
-		Public Sub New(ByVal nU0 As Single, ByVal Tq0 As Single, ByVal FC0 As Single)
+		Public Sub New(nU0 As Single, Tq0 As Single, FC0 As Single)
 			nU = nU0
 			Tq = Tq0
 			FC = FC0
