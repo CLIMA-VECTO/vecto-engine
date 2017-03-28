@@ -7,11 +7,22 @@ Public Class cJob
 	Public R49DragFile As String
 	Public R85TqFile As String
 
+    Public Manufacturer As String
+    Public Make As String
+    Public TypeID As String
+    Public Idle_Parent As Single
+    Public Idle As Single
+    Public Displacement As Single
+    Public FuelType As String
+    Public NCVfuel As Single
+
     Public FCspecMeas_ColdTot As Single
     Public FCspecMeas_HotTot As Single
     Public FCspecMeas_HotUrb As Single
     Public FCspecMeas_HotRur As Single
     Public FCspecMeas_HotMw As Single
+
+    Public CF_RegPer As Single
 
 	Public OutPath As String
 

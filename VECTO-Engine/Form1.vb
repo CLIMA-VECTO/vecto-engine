@@ -57,8 +57,17 @@ Public Class Form1
 
 			Job = New cJob
 
-			Job.MapFile = Me.TbFuelMap.Text
-            Job.R85TqFile = Me.TbFLC_highest.Text
+            Job.Manufacturer = Me.TbManufacturer.Text
+            Job.Make = Me.TbMake.Text
+            Job.TypeID = Me.TbTypeID.Text
+            Job.Idle_Parent = Me.TbIdle_Parent.Text
+            Job.Idle = Me.TbIdle.Text
+            Job.Displacement = Me.TbDisplacement.Text
+            Job.FuelType = Me.CbFuelType.Text
+            Job.NCVfuel = Me.TbNCVfuel.Text
+
+            Job.MapFile = Me.TbFuelMap.Text
+            Job.R85TqFile = Me.TbFLC.Text
             Job.R49TqFile = Me.TbFLC_Parent.Text
             Job.R49DragFile = Me.TbMotoring.Text
             'Job.WHTCmeasFile = Me.TbFLC_lower.Text
@@ -68,6 +77,7 @@ Public Class Form1
             Job.FCspecMeas_HotUrb = Me.TbFCspecUrb.Text
             Job.FCspecMeas_HotRur = Me.TbFCspecRur.Text
             Job.FCspecMeas_HotMw = Me.TbFCspecMW.Text
+            Job.CF_RegPer = Me.TbCF_RegPer.Text
 
 
             Job.OutPath = Me.TbOutputFolder.Text & "\"
@@ -85,9 +95,9 @@ Public Class Form1
 
         Me.GrInput.Enabled = False
         Me.LvMsg.Items.Clear()
-        Me.TbUrbanFactor.Clear()
-        Me.TbRuralFactor.Clear()
-        Me.TbMotorwayFactor.Clear()
+        'Me.TbUrbanFactor.Clear()
+        'Me.TbRuralFactor.Clear()
+        'Me.TbMotorwayFactor.Clear()
 
     End Sub
 
@@ -131,33 +141,37 @@ Public Class Form1
     Private Sub BgWorker_RunWorkerCompleted(sender As Object, e As System.ComponentModel.RunWorkerCompletedEventArgs) Handles BgWorker.RunWorkerCompleted
         JobEnd()
 
-        If JobSuccess Then
-            Me.TbUrbanFactor.Text = Job.WHTCurbanFactor.ToString("0.0000")
-            Me.TbRuralFactor.Text = Job.WHTCruralFactor.ToString("0.0000")
-            Me.TbMotorwayFactor.Text = Job.WHTCmotorwayFactor.ToString("0.0000")
-            Me.TbColdHotFactor.Text = Job.ColdHotBalancingFactor.ToString("0.0000")
-        End If
+        'If JobSuccess Then
+        '    Me.TbUrbanFactor.Text = Job.WHTCurbanFactor.ToString("0.0000")
+        '    Me.TbRuralFactor.Text = Job.WHTCruralFactor.ToString("0.0000")
+        '    Me.TbMotorwayFactor.Text = Job.WHTCmotorwayFactor.ToString("0.0000")
+        '    Me.TbColdHotFactor.Text = Job.ColdHotBalancingFactor.ToString("0.0000")
+        'End If
 
     End Sub
 
     Private Function CheckInput() As Boolean
         Dim Result As Boolean
+        Dim StringForSplit As String
+        Dim StringsAfterSplit As String()
 
         Result = True
 
         'Check if numbers are numbers and files do exist
+
+        'check all file references
         If Trim(Me.TbFuelMap.Text) = "" OrElse Not IO.File.Exists(Me.TbFuelMap.Text) Then
-            ShowMsgDirect("File for Fuel Map not found!", tMsgID.Err)
+            ShowMsgDirect("File for fuel consumption map of CO2-parent engine not found!", tMsgID.Err)
             Result = False
         End If
 
         If Trim(Me.TbFLC_Parent.Text) = "" OrElse Not IO.File.Exists(Me.TbFLC_Parent.Text) Then
-            ShowMsgDirect("File for Full-Load of CO2-Parent engine not found!", tMsgID.Err)
+            ShowMsgDirect("File for full-Load curve of CO2-parent engine not found!", tMsgID.Err)
             Result = False
         End If
 
-        If Trim(Me.TbFLC_highest.Text) = "" OrElse Not IO.File.Exists(Me.TbFLC_highest.Text) Then
-            ShowMsgDirect("File for Full-Load for highest gear not found!", tMsgID.Err)
+        If Trim(Me.TbFLC.Text) = "" OrElse Not IO.File.Exists(Me.TbFLC.Text) Then
+            ShowMsgDirect("File for full-Load curve of actual engine not found!", tMsgID.Err)
             Result = False
         End If
 
@@ -167,7 +181,7 @@ Public Class Form1
         'End If
 
         If Trim(Me.TbMotoring.Text) = "" OrElse Not IO.File.Exists(Me.TbMotoring.Text) Then
-            ShowMsgDirect("File for Motoring-Curve of actual engine not found!", tMsgID.Err)
+            ShowMsgDirect("File for motoring curve of CO2-parent engine not found!", tMsgID.Err)
             Result = False
         End If
 
@@ -176,6 +190,59 @@ Public Class Form1
             Result = False
         End If
 
+
+        'check all input fields, either string or numeric value
+        If Trim(Me.TbManufacturer.Text) = "" Then
+            ShowMsgDirect("Field ""Manufacturer"" is empty!", tMsgID.Err)
+            Result = False
+        End If
+
+        If Trim(Me.TbMake.Text) = "" Then
+            ShowMsgDirect("Field ""Make"" is empty!", tMsgID.Err)
+            Result = False
+        End If
+
+        If Trim(Me.TbTypeID.Text) = "" Then
+            ShowMsgDirect("Field ""Type ID"" is empty!", tMsgID.Err)
+            Result = False
+        End If
+
+        If Not IsNumeric(Me.TbIdle_Parent.Text) Then
+            ShowMsgDirect("Idle speed of CO2-parent engine is not valid!", tMsgID.Err)
+            Result = False
+        Else
+            StringForSplit = Me.TbIdle_Parent.Text
+            StringsAfterSplit = StringForSplit.Split(New String() {"."c}, StringSplitOptions.RemoveEmptyEntries)
+            If StringsAfterSplit(1).Length <> 2 Then
+                ShowMsgDirect("Idle speed of CO2-parent engine needs to be rounded to the nearest whole number!", tMsgID.Err)
+                Result = False
+            End If
+        End If
+
+        If Not IsNumeric(Me.TbIdle.Text) Then
+            ShowMsgDirect("Engine idle speed is not valid!", tMsgID.Err)
+            Result = False
+        End If
+
+        If Not IsNumeric(Me.TbDisplacement.Text) Then
+            ShowMsgDirect("Engine displacement is not valid!", tMsgID.Err)
+            Result = False
+        End If
+
+        If Trim(Me.CbFuelType.Text) = "" Then
+            ShowMsgDirect("Field ""Type of test fuel"" is empty!", tMsgID.Err)
+            Result = False
+        End If
+
+        If Not IsNumeric(Me.TbNCVfuel.Text) Then
+            ShowMsgDirect("NCV of test fuel is not valid!", tMsgID.Err)
+            Result = False
+        End If
+
+        If Not IsNumeric(Me.TbCF_RegPer.Text) Then
+            ShowMsgDirect("CF-RegPer is not valid!", tMsgID.Err)
+            Result = False
+        End If
 
         If Not IsNumeric(Me.TbFCspecCold.Text) Then
             ShowMsgDirect("Specific FC of WHTC coldstart is not valid!", tMsgID.Err)
@@ -225,11 +292,11 @@ Public Class Form1
 
     Private Sub BtOpenMap_Click(sender As Object, e As EventArgs) Handles BtOpenMap.Click
         Dim dlog As New OpenFileDialog
-        dlog.Filter = "VECTO Fuel Map (*.vmap)|*.vmap|All files (*.*)|*.*"
+        dlog.Filter = "Comma-separated values (*.csv)|*.csv|All files (*.*)|*.*"
         If dlog.ShowDialog() = Windows.Forms.DialogResult.OK Then Me.TbFuelMap.Text = dlog.FileName
     End Sub
 
-    Private Sub TbFuelMap_TextChanged(sender As Object, e As EventArgs) Handles TbFuelMap.TextChanged
+    Private Sub TbFuelMap_TextChanged(sender As Object, e As EventArgs)
         If Me.TbOutputFolder.Text = "" AndAlso Me.TbFuelMap.Text <> "" AndAlso IO.File.Exists(Me.TbFuelMap.Text) Then
             Me.TbOutputFolder.Text = System.IO.Path.GetDirectoryName(Me.TbFuelMap.Text)
         End If
@@ -244,7 +311,7 @@ Public Class Form1
     Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
         Dim dlog As New OpenFileDialog
         dlog.Filter = "Comma-separated values (*.csv)|*.csv|All files (*.*)|*.*"
-        If dlog.ShowDialog() = Windows.Forms.DialogResult.OK Then Me.TbFLC_highest.Text = dlog.FileName
+        If dlog.ShowDialog() = Windows.Forms.DialogResult.OK Then Me.TbFLC.Text = dlog.FileName
     End Sub
 
 
@@ -254,11 +321,6 @@ Public Class Form1
         If dlog.ShowDialog() = Windows.Forms.DialogResult.OK Then Me.TbMotoring.Text = dlog.FileName
     End Sub
 
-    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
-        Dim dlog As New OpenFileDialog
-        dlog.Filter = "Comma-separated values (*.csv)|*.csv|All files (*.*)|*.*"
-        If dlog.ShowDialog() = Windows.Forms.DialogResult.OK Then Me.TbFLC_lower.Text = dlog.FileName
-    End Sub
 
 	Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
 		Dim dlog As New FolderBrowserDialog
