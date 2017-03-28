@@ -699,7 +699,7 @@ lbEr:
 		Next
 
 
-		report.Add(New XElement(tns + "VectoInputDeclaration",
+		report.Add(New XElement(rootNamespace + "VectoInputDeclaration",
 								New XAttribute("schemaVersion", SchemaVersion),
 								New XAttribute(XNamespace.Xmlns + "xsi", xsi.NamespaceName),
 								New XAttribute("xmlns", tns),
