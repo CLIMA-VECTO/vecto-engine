@@ -17,92 +17,91 @@
     Public TotWork As Single
     Public TotFCspec As Single
 
-    Public Form_n_idle As Single
-    Public Form_n_lo As Single
-    Public Form_n_hi As Single
-    Public Form_n_pref As Single
-    'Public Form_n_95h As Single
+    Public WHTC_n_idle As Single
+    Public WHTC_n_lo As Single
+    Public WHTC_n_hi As Single
+    Public WHTC_n_pref As Single
 
 
-	Public Function InitCycle(ByVal Measurement As Boolean, ByVal Filepath As String) As Boolean
-		Dim file As New cFile_V3
-		Dim line As String()
-		Dim nU As Single
-		Dim Tq As Single
+    Public Function InitCycle(ByVal Measurement As Boolean, ByVal Filepath As String) As Boolean
+        Dim file As New cFile_V3
+        Dim line As String()
+        Dim nU As Single
+        Dim Tq As Single
 
 
-		If Not file.OpenRead(Filepath) Then
-			WorkerMsg(tMsgID.Err, "Failed to load WHTC cycle!")
-			Return False
-		End If
+        If Not file.OpenRead(Filepath) Then
+            WorkerMsg(tMsgID.Err, "Failed to load WHTC cycle!")
+            Return False
+        End If
 
-		lTime.Clear()
-		lnU.Clear()
-		lTq.Clear()
-		lFC.Clear()
+        lTime.Clear()
+        lnU.Clear()
+        lTq.Clear()
+        lFC.Clear()
 
-		Try
-			'Skip header
-			file.ReadLine()
+        Try
+            'Skip header
+            file.ReadLine()
 
-			'Read lines
-			iDim = -1
-			Do While Not file.EndOfFile
-				line = file.ReadLine
+            'Read lines
+            iDim = -1
+            Do While Not file.EndOfFile
+                line = file.ReadLine
 
-				iDim += 1
+                iDim += 1
 
-				If Measurement Then
+                If Measurement Then
 
-					nU = line(1)
-					Tq = line(2)
-					lFC.Add(line(3))
+                    nU = line(1)
+                    Tq = line(2)
+                    lFC.Add(line(3))
 
-				Else
+                Else
 
-					nU = line(1)
-					Tq = line(2)
+                    nU = line(1)
+                    Tq = line(2)
 
-					'Denorm
+                    'Denorm
                     'nU = nU * 0.01 * (0.45 * FullLoad.n_lo + 0.45 * FullLoad.n_pref + 0.1 * FullLoad.n_hi - FullLoad.n_idle) * 2.0327 + FullLoad.n_idle
                     'Calculate WHTC engine speeds with values from input form
-                    nU = nU * 0.01 * (0.45 * Form_n_lo + 0.45 * Form_n_pref + 0.1 * Form_n_hi - Form_n_idle) * 2.0327 + Form_n_idle
+                    nU = nU * 0.01 * (0.45 * WHTC_n_lo + 0.45 * WHTC_n_pref + 0.1 * WHTC_n_hi - WHTC_n_idle) * 2.0327 + WHTC_n_idle
 
-					If Tq < 0 Then
-						Tq = Drag.Tq(nU)
-					Else
-						Tq = Tq * 0.01 * (FullLoad.Tq(nU))
-					End If
+                    If Tq < 0 Then
+                        Tq = Drag.Tq(nU)
+                    Else
+                        Tq = Tq * 0.01 * (FullLoad.Tq(nU))
+                    End If
 
-					lFC.Add(0)
+                    lFC.Add(0)
 
-				End If
+                End If
 
-				lTime.Add(line(0))
-				lnU.Add(nU)
-				lTq.Add(Tq)
-				lPe.Add(nTqtoPe(nU, Tq))
+                lTime.Add(line(0))
+                lnU.Add(nU)
+                lTq.Add(Tq)
+                lPe.Add(nTqtoPe(nU, Tq))
 
-				If iDim > 0 Then
-					If lTime(iDim) <= lTime(iDim - 1) Then
-						WorkerMsg(tMsgID.Err, "Invalid time step in WHTC cycle (" & lTime(iDim) & " [s])!")
-						Return False
-					End If
-				End If
+                If iDim > 0 Then
+                    If lTime(iDim) <= lTime(iDim - 1) Then
+                        WorkerMsg(tMsgID.Err, "Invalid time step in WHTC cycle (" & lTime(iDim) & " [s])!")
+                        Return False
+                    End If
+                End If
 
-			Loop
-		Catch ex As Exception
+            Loop
+        Catch ex As Exception
 
-			file.Close()
+            file.Close()
 
-			WorkerMsg(tMsgID.Err, "Failed to load WHTC cycle (" & ex.Message & ")!")
-			Return False
-		End Try
+            WorkerMsg(tMsgID.Err, "Failed to load WHTC cycle (" & ex.Message & ")!")
+            Return False
+        End Try
 
-		file.Close()
-		Return True
+        file.Close()
+        Return True
 
-	End Function
+    End Function
 
 	Public Function CalcFC() As Boolean
 
