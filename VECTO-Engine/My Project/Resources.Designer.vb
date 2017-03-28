@@ -81,6 +81,26 @@ Namespace My.Resources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to rpm,PT1
+        '''400,0
+        '''800,0.47
+        '''1000,0.58
+        '''1200,0.53
+        '''1400,0.46
+        '''1500,0.43
+        '''1750,0.22
+        '''1800,0.2
+        '''2000,0.11
+        '''2500,0.11
+        '''.
+        '''</summary>
+        Friend ReadOnly Property PT1() As String
+            Get
+                Return ResourceManager.GetString("PT1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized resource of type System.Drawing.Bitmap.
         '''</summary>
         Friend ReadOnly Property VectoEngine_6_cropV164pix() As System.Drawing.Bitmap

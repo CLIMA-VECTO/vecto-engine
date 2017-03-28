@@ -26,7 +26,7 @@ Public Class cJob
 	Public OutPath As String
 
 	Public WHTCsim As cWHTC
-	Public WHSCsim As cWHSC
+	'Public WHSCsim As cWHSC
 
 	Private MAP As cMAP0
 	Private R49Tq As cFLD0
@@ -116,7 +116,7 @@ Public Class cJob
 		WHTCsim.WHTC_n_lo = R49Tq.n_lo
 		WHTCsim.WHTC_n_pref = R49Tq.n_pref
 		WHTCsim.WHTC_n_hi = R49Tq.n_hi
-		If Not WHTCsim.InitCycle(False, MyConfPath & "WHTC.csv") Then Return False
+		If Not WHTCsim.InitCycle(False) Then Return False
 
 		WorkerMsg(tMsgID.Normal, "WHTC Simulation")
 		'Use R49 Parent full load from Map, since this is limited by map maximum torque
@@ -147,32 +147,32 @@ Public Class cJob
 		'If Not MAP.AddFld() Then Return False
 
 
-		' *** WHSC SIMULATION START
-		WorkerMsg(tMsgID.Normal, "WHSC Initialisation")
-		'Allocation of data used for calculation and reading of input files for WHSC
-		WHSCsim = New cWHSC
-		WHSCsim.Drag = Drag
-		'Use original R49 Parent full load (not limited from Map), since WHTC target torque values shall be calculated based on original full load curve
-		WHSCsim.FullLoad = R49Tq
-		WHSCsim.Map = MAP
-		WHSCsim.PT1 = PT1
-		WHSCsim.WHSC_n_idle = R49Tq.n_idle
-		WHSCsim.WHSC_n_lo = R49Tq.n_lo
-		WHSCsim.WHSC_n_pref = R49Tq.n_pref
-		WHSCsim.WHSC_n_hi = R49Tq.n_hi
-		If Not WHSCsim.InitCycle(MyConfPath & "WHSC.csv") Then Return False
+		'' *** WHSC SIMULATION START
+		'WorkerMsg(tMsgID.Normal, "WHSC Initialisation")
+		''Allocation of data used for calculation and reading of input files for WHSC
+		'WHSCsim = New cWHSC
+		'WHSCsim.Drag = Drag
+		''Use original R49 Parent full load (not limited from Map), since WHTC target torque values shall be calculated based on original full load curve
+		'WHSCsim.FullLoad = R49Tq
+		'WHSCsim.Map = MAP
+		'WHSCsim.PT1 = PT1
+		'WHSCsim.WHSC_n_idle = R49Tq.n_idle
+		'WHSCsim.WHSC_n_lo = R49Tq.n_lo
+		'WHSCsim.WHSC_n_pref = R49Tq.n_pref
+		'WHSCsim.WHSC_n_hi = R49Tq.n_hi
+		'If Not WHSCsim.InitCycle(MyConfPath & "WHSC.csv") Then Return False
 
 
-		WorkerMsg(tMsgID.Normal, "WHSC Simulation")
-		'Use R49 Parent full load from Map, since this is limited by map maximum torque
-		'Different full load torque used in function "CalcFC of cWHSC"
-		WHSCsim.FullLoad = MAP.FLC_Parent
-		If Not WHSCsim.CalcFC() Then Return False
-		If Not WHSCsim.CalcResults(False) Then Return False
+		'WorkerMsg(tMsgID.Normal, "WHSC Simulation")
+		''Use R49 Parent full load from Map, since this is limited by map maximum torque
+		''Different full load torque used in function "CalcFC of cWHSC"
+		'WHSCsim.FullLoad = MAP.FLC_Parent
+		'If Not WHSCsim.CalcFC() Then Return False
+		'If Not WHSCsim.CalcResults(False) Then Return False
 
-		WorkerMsg(tMsgID.Normal, "WHSC Simulation Results:")
-		WorkerMsg(tMsgID.Normal, "   Total: " & (WHSCsim.TotFCspec).ToString("0.0000") & " [g/kWh].")
-		' *** WHSC SIMULATION END
+		'WorkerMsg(tMsgID.Normal, "WHSC Simulation Results:")
+		'WorkerMsg(tMsgID.Normal, "   Total: " & (WHSCsim.TotFCspec).ToString("0.0000") & " [g/kWh].")
+		'' *** WHSC SIMULATION END
 
 
 		'Write output files

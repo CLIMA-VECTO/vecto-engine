@@ -138,6 +138,8 @@
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
     <None Include="App.config" />
+    <EmbeddedResource Include="Resources\WHSC.csv" />
+    <EmbeddedResource Include="Resources\WHTC.csv" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Help-icon.png" />
@@ -146,6 +148,7 @@
     <None Include="Resources\Open-icon.png" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\PT1.csv" />
     <None Include="Resources\VectoEngine_6_cropV164pix.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
