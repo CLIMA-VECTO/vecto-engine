@@ -2,258 +2,279 @@
 
 Public Class cJob
 	Public MapFile As String
-	Public R49TqFile As String
-	Public R49DragFile As String
-	Public R85TqFile As String
+    Public FlcParentFile As String
+    Public DragFile As String
+    Public FlcFile As String
 
-	Public Manufacturer As String
-	Public Make As String
-	Public TypeID As String
-	Public Idle_Parent As Single
-	Public Idle As Single
-	Public Displacement As Single
-	Public FuelType As String
-	Public NCVfuel As Single
+    Public Manufacturer As String
+    Public Make As String
+    Public TypeID As String
+    Public Idle_Parent As Double
+    Public Idle As Double
+    Public Displacement As Double
+    Public FuelType As String
+    Public NCVfuel As Double
 
-	Public FCspecMeas_ColdTot As Single
-	Public FCspecMeas_HotTot As Single
-	Public FCspecMeas_HotUrb As Single
-	Public FCspecMeas_HotRur As Single
-	Public FCspecMeas_HotMw As Single
+    Public FCspecMeas_ColdTot As Double
+    Public FCspecMeas_HotTot As Double
+    Public FCspecMeas_HotUrb As Double
+    Public FCspecMeas_HotRur As Double
+    Public FCspecMeas_HotMw As Double
 
-	Public CF_RegPer As Single
+    Public CF_RegPer As Double
 
-	Public OutPath As String
-
-	Public WHTCsim As cWHTC
-	'Public WHSCsim As cWHSC
-
-	Private MAP As cMAP0
-	Private R49Tq As cFLD0
-	Private Drag As cFLD0
-	Private R85Tq As cFLD0
-
-	Public WHTCurbanFactor As Single
-	Public WHTCruralFactor As Single
-	Public WHTCmotorwayFactor As Single
-	Public ColdHotBalancingFactor As Single
-
-	Public PT1 As cPT1
-
-	Public Function Run() As Boolean
-
-		'Initialize Warning counter
-		NumWarnings = 0
-
-		WorkerMsg(tMsgID.Normal, "Reading files")
-
-		PT1 = New cPT1
-		PT1.Filepath = MyConfPath & "PT1.csv"
-		If Not PT1.Init() Then Return False
-
-		R49Tq = New cFLD0
-		R49Tq.FilePath = R49TqFile
-		If Not R49Tq.ReadFile(False) Then Return False
-
-		Drag = New cFLD0
-		Drag.FilePath = R49DragFile
-		If Not Drag.ReadFile(False) Then Return False
-
-		R85Tq = New cFLD0
-		R85Tq.FilePath = R85TqFile
-		If Not R85Tq.ReadFile(False) Then Return False
-
-		MAP = New cMAP0
-		MAP.FilePath = MapFile
-		MAP.FLC_Parent = R49Tq
-		MAP.FLC_highest = R85Tq
-		MAP.Motoring = Drag
-
-		If Not MAP.ReadFile Then Return False
-
-
-		If Not R49Tq.RpmCalc("Analysing Parent R49 full load") Then Return False
-		If Not R85Tq.RpmCalc("Analysing Actual engine R49 full load") Then Return False
-
-		'Assign char. speeds from full-load curve to Map
-		MAP.Map_n_idle = R49Tq.n_idle
-		MAP.Map_n_lo = R49Tq.n_lo
-		MAP.Map_n_pref = R49Tq.n_pref
-		MAP.Map_n_95h = R49Tq.n_95h
-		MAP.Map_n_hi = R49Tq.n_hi
-
-		'Analyse FC Map
-		WorkerMsg(tMsgID.Normal, "Analysing Map")
-		If Not MAP.Init() Then Return False
-
-		'Extrapolate fuel consumption map to cover knees in full load curve
-		WorkerMsg(tMsgID.Normal, "Extrapolating Map")
-		If Not MAP.ExtrapolateMap() Then Return False
-
-		'Add drag curve to Map (for FC calc around 0 Nm)
-		If Not MAP.AddDrag() Then Return False
-
-		If Not MAP.Triangulate Then Return False
-
-		'Limit R49 Parent full load to FC Map maximum torque
-		WorkerMsg(tMsgID.Normal, "Comparing Parent R49 maximum torque to extrapolated Map maximum torque")
-		If Not MAP.LimitR49toMap() Then Return False
-
-
-		'Limit Drag curve to interpolated values from FC Map
-		If Not MAP.LimitDragtoMap() Then Return False
+    Public OutPath As String
 
-
-		WorkerMsg(tMsgID.Normal, "WHTC Initialisation")
-		'Allocation of data used for calculation and reading of input files for WHTC
-		WHTCsim = New cWHTC
-		WHTCsim.Drag = Drag
-		'Use original R49 Parent full load (not limited from Map), since WHTC target torque values shall be calculated based on original full load curve
-		WHTCsim.FullLoad = R49Tq
-		WHTCsim.Map = MAP
-		WHTCsim.PT1 = PT1
-		WHTCsim.WHTC_n_idle = R49Tq.n_idle
-		WHTCsim.WHTC_n_lo = R49Tq.n_lo
-		WHTCsim.WHTC_n_pref = R49Tq.n_pref
-		WHTCsim.WHTC_n_hi = R49Tq.n_hi
-		If Not WHTCsim.InitCycle(False) Then Return False
-
-		WorkerMsg(tMsgID.Normal, "WHTC Simulation")
-		'Use R49 Parent full load from Map, since this is limited by map maximum torque
-		'Different full load torque used in function "CalcFC of cWHTC"
-		WHTCsim.FullLoad = MAP.FLC_Parent
-		If Not WHTCsim.CalcFC() Then Return False
-		If Not WHTCsim.CalcResults(False) Then Return False
-
-		'Calculation of WHTC-Correction and Cold-Hot-Balancing-Factor
-		WHTCurbanFactor = FCspecMeas_HotUrb / WHTCsim.Urban
-		If WHTCurbanFactor < 1 Then WHTCurbanFactor = 1
-		WHTCruralFactor = FCspecMeas_HotRur / WHTCsim.Rural
-		If WHTCruralFactor < 1 Then WHTCruralFactor = 1
-		WHTCmotorwayFactor = FCspecMeas_HotMw / WHTCsim.Motorway
-		If WHTCmotorwayFactor < 1 Then WHTCmotorwayFactor = 1
-
-		WorkerMsg(tMsgID.Normal, "WHTC Simulation Results:")
-		WorkerMsg(tMsgID.Normal, "   Urban: " & (WHTCsim.Urban).ToString("0.00") & " [g/kWh].")
-		WorkerMsg(tMsgID.Normal, "   Rural: " & (WHTCsim.Rural).ToString("0.00") & " [g/kWh].")
-		WorkerMsg(tMsgID.Normal, "   Motorway: " & (WHTCsim.Motorway).ToString("0.00") & " [g/kWh].")
-		WorkerMsg(tMsgID.Normal, "   Total: " & (WHTCsim.TotFCspec).ToString("0.00") & " [g/kWh].")
-
-
-		ColdHotBalancingFactor = 1 + 0.1 * (FCspecMeas_ColdTot - FCspecMeas_HotTot) / FCspecMeas_HotTot
-		If ColdHotBalancingFactor < 1 Then ColdHotBalancingFactor = 1
-		''Cut Map to R85	full load (extrapolation or interpolation, interpolation only for lower power ratings)
-		'WorkerMsg(tMsgID.Normal, "Extrapolating Map to fit Parent R49 full load")
-		'If Not MAP.AddFld() Then Return False
-
-
-		'' *** WHSC SIMULATION START
-		'WorkerMsg(tMsgID.Normal, "WHSC Initialisation")
-		''Allocation of data used for calculation and reading of input files for WHSC
-		'WHSCsim = New cWHSC
-		'WHSCsim.Drag = Drag
-		''Use original R49 Parent full load (not limited from Map), since WHTC target torque values shall be calculated based on original full load curve
-		'WHSCsim.FullLoad = R49Tq
-		'WHSCsim.Map = MAP
-		'WHSCsim.PT1 = PT1
-		'WHSCsim.WHSC_n_idle = R49Tq.n_idle
-		'WHSCsim.WHSC_n_lo = R49Tq.n_lo
-		'WHSCsim.WHSC_n_pref = R49Tq.n_pref
-		'WHSCsim.WHSC_n_hi = R49Tq.n_hi
-		'If Not WHSCsim.InitCycle(MyConfPath & "WHSC.csv") Then Return False
-
-
-		'WorkerMsg(tMsgID.Normal, "WHSC Simulation")
-		''Use R49 Parent full load from Map, since this is limited by map maximum torque
-		''Different full load torque used in function "CalcFC of cWHSC"
-		'WHSCsim.FullLoad = MAP.FLC_Parent
-		'If Not WHSCsim.CalcFC() Then Return False
-		'If Not WHSCsim.CalcResults(False) Then Return False
-
-		'WorkerMsg(tMsgID.Normal, "WHSC Simulation Results:")
-		'WorkerMsg(tMsgID.Normal, "   Total: " & (WHSCsim.TotFCspec).ToString("0.0000") & " [g/kWh].")
-		'' *** WHSC SIMULATION END
-
-
-		'Write output files
-		WorkerMsg(tMsgID.Normal, "Writing output files")
-		If Not MAP.WriteMap(OutPath & fFILE(MapFile, False) & "_mod.vmap") Then Return False
-		If Not MAP.WriteFLD(OutPath & fFILE(MapFile, False) & "_" & fFILE(R85TqFile, False) & ".vfld") Then Return False
-		If Not WriteTransFile(OutPath & "WHTC-Correction-Factors.xml") Then Return False
-		MAP.WriteXmlComponentFile(OutPath & fFILE(MapFile, False) & "_" & fFILE(R85TqFile, False) & ".xml",
-								  fFILE(R85TqFile, False), Me)
-
-		'RpmWarnings()
-		'RpmWarningsGearshifting()
-
-		WorkerMsg(tMsgID.Normal, "Completed.")
-
-
-		If NumWarnings > 0 Then
-			WorkerMsg(tMsgID.Warn,
-					  "ATTENTION:  " & NumWarnings &
-					  " Warnings occured: Please check detailled descriptions in 'Message Window'!")
-		End If
-
-
-		Return True
-	End Function
-
-
-	Private Sub RpmWarnings()
-
-		'If Math.Abs(n_idle - R49Tq.n_idle) > 5 Then WorkerMsg(tMsgID.Warn, "Calculated (from Parent R49 Full Load) n_idle = " & R49Tq.n_idle & " [1/min]!")
-		WorkerMsg(tMsgID.Warn, "Calculated (from Parent R49 Full Load) n_idle = " & R49Tq.n_idle & " [1/min]!")
-		'If Math.Abs(n_lo - R49Tq.n_lo) > 5 Then WorkerMsg(tMsgID.Warn, "Calculated (from Parent R49 Full Load) n_lo = " & R49Tq.n_lo & " [1/min]!")
-
-		'If Math.Abs(n_pref - R49Tq.n_pref) > 5 Then WorkerMsg(tMsgID.Warn, "Calculated (from Parent R49 Full Load) n_pref = " & R49Tq.n_pref & " [1/min]!")
-		WorkerMsg(tMsgID.Warn, "Calculated (from Parent R49 Full Load) n_lo = " & R49Tq.n_lo & " [1/min]!")
-
-		'If Math.Abs(n_95h - R49Tq.n_95h) > 5 Then WorkerMsg(tMsgID.Warn, "Calculated (from Parent R49 Full Load) n_95h = " & R49Tq.n_95h & " [1/min]!")
-		WorkerMsg(tMsgID.Warn, "Calculated (from Parent R49 Full Load) n_pref = " & R49Tq.n_pref & " [1/min]!")
-
-		'If Math.Abs(n_hi - R49Tq.n_hi) > 5 Then WorkerMsg(tMsgID.Warn, "Calculated (from Parent R49 Full Load) n_hi = " & R49Tq.n_hi & " [1/min]!")
-		WorkerMsg(tMsgID.Warn, "Calculated (from Parent R49 Full Load) n_95h = " & R49Tq.n_95h & " [1/min]!")
-	End Sub
-
-	Private Sub RpmWarningsGearshifting()
-
-		'If (n_idle - R85Tq.n_idle) >= 5 Then WorkerMsg(tMsgID.Warn, "n_idle for actual engine is lower than n_idle for Parent engine (will cause error in VECTO vehicle simulation)!")
-
-		'If (n_95h - R85Tq.n_95h) <= -5 Then WorkerMsg(tMsgID.Warn, "n_95h for actual engine is higher than n_idle for Parent engine (will cause error in VECTO vehicle simulation)!")
-	End Sub
-
-	Private Function WriteTransFile(path As String) As Boolean
-		Dim xml As New XDocument
-		Dim xe As XElement
-		Dim xe0 As XElement
-
-		Try
-			xe = New XElement("VECTO-Engine-TransferFile", New XAttribute("FileVersion", 1))
-
-			xe0 = New XElement("Info")
-			xe0.Add(New XElement("DateCreated", Now.ToString))
-			xe0.Add(New XElement("MapFile", fFILE(MapFile, True)))
-			xe0.Add(New XElement("R85File", fFILE(R85TqFile, True)))
-			xe.Add(xe0)
-
-
-			xe0 = New XElement("WHTCCorrectionFactors")
-			xe0.Add(New XElement("Urban", WHTCurbanFactor))
-			xe0.Add(New XElement("Rural", WHTCruralFactor))
-			xe0.Add(New XElement("Motorway", WHTCmotorwayFactor))
-			xe.Add(xe0)
-
-			xml.Add(xe)
-			xml.Save(path)
-
-		Catch ex As Exception
-			WorkerMsg(tMsgID.Err, "Failed to write VECTO transfer file! " & ex.Message)
-			Return False
-		End Try
-
-		Return True
-	End Function
+    Public WHTCsim As cWHTC
+    'Public WHSCsim As cWHSC
+
+    Private MAP As cMAP0
+    Private FlcParent As cFLD0
+    Private Drag As cFLD0
+    Private Flc As cFLD0
+
+    Public WHTCurbanFactor As Double
+    Public WHTCruralFactor As Double
+    Public WHTCmotorwayFactor As Double
+    Public ColdHotBalancingFactor As Double
+
+    Public PT1 As cPT1
+
+    Public Function Run() As Boolean
+
+        'Initialize Warning counter
+        NumWarnings = 0
+
+        WorkerMsg(tMsgID.Normal, "Analyzing input files")
+
+        PT1 = New cPT1
+        'PT1.Filepath = MyConfPath & "PT1.csv"
+        If Not PT1.Init() Then Return False
+
+        FlcParent = New cFLD0
+        FlcParent.FilePath = FlcParentFile
+        FlcParent.IdleSpeedValueForCheck = Idle_Parent
+        If Not FlcParent.ReadFile(True, True) Then Return False
+
+        Drag = New cFLD0
+        Drag.FilePath = DragFile
+        Drag.IdleSpeedValueForCheck = Idle_Parent
+        If Not Drag.ReadFile(True, False) Then Return False
+
+        Flc = New cFLD0
+        Flc.FilePath = FlcFile
+        Flc.IdleSpeedValueForCheck = Idle
+        If Not Flc.ReadFile(True, True) Then Return False
+
+        ' Calculate tolerances for fuel map torque values based on Tmax_overall (2% rule, paragraph 4.3.5.5 of technical annex)
+        TqStepTol = Math.Max(TqStepTol_abs, 0.02 * FlcParent.TqMax)
+
+        MAP = New cMAP0
+        MAP.FilePath = MapFile
+        MAP.FLC_Parent = FlcParent
+        MAP.FLC = Flc
+        MAP.Motoring = Drag
+
+        If Not MAP.ReadFile Then Return False
+
+
+        If Not FlcParent.RpmCalc("CO2-parent full load") Then Return False
+        If Not Flc.RpmCalc("actual engine full load") Then Return False
+
+        'Assign char. speeds from full-load curve to Map
+        MAP.Map_n_idle = FlcParent.n_idle
+        MAP.Map_n_lo = FlcParent.n_lo
+        MAP.Map_n_pref = FlcParent.n_pref
+        MAP.Map_n_95h = FlcParent.n_95h
+        MAP.Map_n_hi = FlcParent.n_hi
+
+        'DEBUG ONLY
+#If DEBUG Then
+        If Not MAP.WriteFLD(OutPath & "DEBUG_" & Manufacturer & "_" & Make & "_" & TypeID & "_FLC_forMapCheck.vfld", False) Then Return False
+#End If
+
+
+
+        'Analyse FC Map
+        WorkerMsg(tMsgID.Normal, "Analysing Map")
+        If Not MAP.Init() Then Return False
+
+        'Extrapolate fuel consumption map to cover knees in full load curve
+        WorkerMsg(tMsgID.Normal, "Extrapolating Map")
+        If Not MAP.ExtrapolateMap() Then Return False
+
+        'Add motoring curve to Map (for FC calc around 0 Nm)
+        If Not MAP.AddDrag() Then Return False
+
+        If Not MAP.Triangulate Then Return False
+
+        'Limit CO2-Parent full load to FC Map maximum torque
+        WorkerMsg(tMsgID.Normal, "Comparing CO2-parent maximum torque to extrapolated Map maximum torque")
+        If Not MAP.LimitFlcParentToMap() Then Return False
+        'Limit motoring curve to interpolated values from FC Map
+        If Not MAP.LimitDragtoMap() Then Return False
+
+
+        WorkerMsg(tMsgID.Normal, "WHTC Initialisation")
+        'Allocation of data used for calculation and reading of input files for WHTC
+        WHTCsim = New cWHTC
+        WHTCsim.Drag = Drag
+        'NOT VALID ANYMORE: Use original full load (not limited from Map), since WHTC target torque values shall be calculated based on original full load curve
+        'simulate WHTC with actual engine not parent
+        WHTCsim.FullLoad = Flc
+        WHTCsim.Map = MAP
+        WHTCsim.PT1 = PT1
+        WHTCsim.WHTC_n_idle = Flc.n_idle
+        WHTCsim.WHTC_n_lo = Flc.n_lo
+        WHTCsim.WHTC_n_pref = Flc.n_pref
+        WHTCsim.WHTC_n_hi = Flc.n_hi
+        If Not WHTCsim.InitCycle(False) Then Return False
+
+        WorkerMsg(tMsgID.Normal, "WHTC Simulation")
+        'NOT VALID ANYMORE: Use CO2-parent full load from Map, since this is limited by map maximum torque
+        'NOT VALID ANYMORE: Different full load torque used in function "CalcFC of cWHTC"
+        'simulate WHTC with actual engine not parent
+        WHTCsim.FullLoad = Flc
+        If Not WHTCsim.CalcFC() Then Return False
+        If Not WHTCsim.CalcResults(False) Then Return False
+
+        'Calculation of WHTC-Correction and Cold-Hot-Balancing-Factor
+        WHTCurbanFactor = FCspecMeas_HotUrb / Math.Round(WHTCsim.Urban, 2)
+        If WHTCurbanFactor < 1 Then WHTCurbanFactor = 1
+        WHTCruralFactor = FCspecMeas_HotRur / Math.Round(WHTCsim.Rural, 2)
+        If WHTCruralFactor < 1 Then WHTCruralFactor = 1
+        WHTCmotorwayFactor = FCspecMeas_HotMw / Math.Round(WHTCsim.Motorway, 2)
+        If WHTCmotorwayFactor < 1 Then WHTCmotorwayFactor = 1
+
+        WorkerMsg(tMsgID.Normal, "WHTC Simulation Results:")
+        WorkerMsg(tMsgID.Normal, "   Urban: " & (WHTCsim.Urban).ToString("f2") & " [g/kWh].")
+        WorkerMsg(tMsgID.Normal, "   Rural: " & (WHTCsim.Rural).ToString("f2") & " [g/kWh].")
+        WorkerMsg(tMsgID.Normal, "   Motorway: " & (WHTCsim.Motorway).ToString("f2") & " [g/kWh].")
+        WorkerMsg(tMsgID.Normal, "   Total: " & (WHTCsim.TotFCspec).ToString("f2") & " [g/kWh].")
+
+
+        ColdHotBalancingFactor = 1 + 0.1 * (FCspecMeas_ColdTot - FCspecMeas_HotTot) / FCspecMeas_HotTot
+        If ColdHotBalancingFactor < 1 Then ColdHotBalancingFactor = 1
+        ''Cut Map to R85	full load (extrapolation or interpolation, interpolation only for lower power ratings)
+        'WorkerMsg(tMsgID.Normal, "Extrapolating Map to fit Parent R49 full load")
+        'If Not MAP.AddFld() Then Return False
+
+
+        '' *** WHSC SIMULATION START
+        'WorkerMsg(tMsgID.Normal, "WHSC Initialisation")
+        ''Allocation of data used for calculation and reading of input files for WHSC
+        'WHSCsim = New cWHSC
+        'WHSCsim.Drag = Drag
+        ''Use original CO2-parent full load (not limited from Map), since WHTC target torque values shall be calculated based on original full load curve
+        'WHSCsim.FullLoad = FlcParent
+        'WHSCsim.Map = MAP
+        'WHSCsim.PT1 = PT1
+        'WHSCsim.WHSC_n_idle = FlcParent.n_idle
+        'WHSCsim.WHSC_n_lo = FlcParent.n_lo
+        'WHSCsim.WHSC_n_pref = FlcParent.n_pref
+        'WHSCsim.WHSC_n_hi = FlcParent.n_hi
+        'If Not WHSCsim.InitCycle(MyConfPath & "WHSC.csv") Then Return False
+
+
+        'WorkerMsg(tMsgID.Normal, "WHSC Simulation")
+        ''Use CO2-parent full load from Map, since this is limited by map maximum torque
+        ''Different full load torque used in function "CalcFC of cWHSC"
+        'WHSCsim.FullLoad = MAP.FLC_Parent
+        'If Not WHSCsim.CalcFC() Then Return False
+        'If Not WHSCsim.CalcResults(False) Then Return False
+
+        'WorkerMsg(tMsgID.Normal, "WHSC Simulation Results:")
+        'WorkerMsg(tMsgID.Normal, "   Total: " & (WHSCsim.TotFCspec).ToString("0.0000") & " [g/kWh].")
+        '' *** WHSC SIMULATION END
+
+
+
+        'calculate NCV correction factor depending on fuel type
+        MAP.NCV_CorrectionFactor = Math.Round(NCVfuel / NCV_std.Item(FuelType), 4)
+        MAP.temp_Map_FuelType = FuelType
+        'MsgBox(MAP.NCV_CorrectionFactor)
+
+        'Write output files
+        WorkerMsg(tMsgID.Normal, "Writing output files")
+        'If Not MAP.WriteMap(OutPath & fFILE(MapFile, False) & "_mod.vmap") Then Return False
+        If Not MAP.WriteMap(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Make & "_" & TypeID & "_FCmap.vmap") Then Return False
+        'If Not MAP.WriteFLD(OutPath & fFILE(MapFile, False) & "_" & fFILE(FlcFile, False) & ".vfld") Then Return False
+        If Not MAP.WriteFLD(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Make & "_" & TypeID & "_FLC.vfld", True) Then Return False
+        'If Not WriteTransFile(OutPath & "WHTC-Correction-Factors.xml") Then Return False
+        MAP.WriteXmlComponentFile(OutPath & Manufacturer & "_" & Make & "_" & TypeID & ".xml",
+                                  fFILE(FlcFile, False), Me)
+
+        'RpmWarnings()
+        'RpmWarningsGearshifting()
+
+        WorkerMsg(tMsgID.Normal, "Completed.")
+
+
+        If NumWarnings > 0 Then
+            WorkerMsg(tMsgID.Warn,
+                      "ATTENTION:  " & NumWarnings &
+                      " Warning(s) occured: Please check detailled descriptions in 'Message Window'!")
+        End If
+
+
+        Return True
+    End Function
+
+
+    Private Sub RpmWarnings()
+
+        'If Math.Abs(n_idle - FlcParent.n_idle) > 5 Then WorkerMsg(tMsgID.Warn, "Calculated (from CO2-Parent Full Load) n_idle = " & FlcParent.n_idle & " [1/min]!")
+        'WorkerMsg(tMsgID.Warn, "Calculated (from CO2-Parent Full Load) n_idle = " & FlcParent.n_idle & " [1/min]!")
+        'If Math.Abs(n_lo - FlcParent.n_lo) > 5 Then WorkerMsg(tMsgID.Warn, "Calculated (from CO2-Parent Full Load) n_lo = " & FlcParent.n_lo & " [1/min]!")
+
+        'If Math.Abs(n_pref - FlcParent.n_pref) > 5 Then WorkerMsg(tMsgID.Warn, "Calculated (from CO2-Parent Full Load) n_pref = " & FlcParent.n_pref & " [1/min]!")
+        'WorkerMsg(tMsgID.Warn, "Calculated (from CO2-Parent Full Load) n_lo = " & FlcParent.n_lo & " [1/min]!")
+
+        'If Math.Abs(n_95h - FlcParent.n_95h) > 5 Then WorkerMsg(tMsgID.Warn, "Calculated (from CO2-Parent Full Load) n_95h = " & FlcParent.n_95h & " [1/min]!")
+        'WorkerMsg(tMsgID.Warn, "Calculated (from CO2-Parent Full Load) n_pref = " & FlcParent.n_pref & " [1/min]!")
+
+        'If Math.Abs(n_hi - FlcParent.n_hi) > 5 Then WorkerMsg(tMsgID.Warn, "Calculated (from CO2-Parent Full Load) n_hi = " & FlcParent.n_hi & " [1/min]!")
+        'WorkerMsg(tMsgID.Warn, "Calculated (from CO2-Parent Full Load) n_95h = " & FlcParent.n_95h & " [1/min]!")
+    End Sub
+
+    Private Sub RpmWarningsGearshifting()
+
+        'If (n_idle - Flc.n_idle) >= 5 Then WorkerMsg(tMsgID.Warn, "n_idle for actual engine is lower than n_idle for Parent engine (will cause error in VECTO vehicle simulation)!")
+
+        'If (n_95h - Flc.n_95h) <= -5 Then WorkerMsg(tMsgID.Warn, "n_95h for actual engine is higher than n_idle for Parent engine (will cause error in VECTO vehicle simulation)!")
+    End Sub
+
+    Private Function WriteTransFile(path As String) As Boolean
+        Dim xml As New XDocument
+        Dim xe As XElement
+        Dim xe0 As XElement
+
+        Try
+            xe = New XElement("VECTO-Engine-TransferFile", New XAttribute("FileVersion", 1))
+
+            xe0 = New XElement("Info")
+            xe0.Add(New XElement("DateCreated", Now.ToString))
+            xe0.Add(New XElement("MapFile", fFILE(MapFile, True)))
+            xe0.Add(New XElement("FullloadFile", fFILE(FlcFile, True)))
+            xe.Add(xe0)
+
+
+            xe0 = New XElement("WHTCCorrectionFactors")
+            xe0.Add(New XElement("Urban", WHTCurbanFactor))
+            xe0.Add(New XElement("Rural", WHTCruralFactor))
+            xe0.Add(New XElement("Motorway", WHTCmotorwayFactor))
+            xe.Add(xe0)
+
+            xml.Add(xe)
+            xml.Save(path)
+
+        Catch ex As Exception
+            WorkerMsg(tMsgID.Err, "Failed to write VECTO transfer file! " & ex.Message)
+            Return False
+        End Try
+
+        Return True
+    End Function
 End Class
 
 

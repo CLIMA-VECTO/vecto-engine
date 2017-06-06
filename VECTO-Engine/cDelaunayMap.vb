@@ -101,8 +101,8 @@ Public Class cDelaunayMap
 		Dim jmin As Integer
         Dim l0 As Double()
 		Dim tr As dTriangle
-		Dim dist As Single
-		Dim distmin As Single
+        Dim dist As Double
+        Dim distmin As Double
 
         ExtrapolError = False
 
@@ -281,77 +281,77 @@ Public Class cDelaunayMap
 
     End Function
 
-	Private Function GetDistance(ByRef tr As dTriangle, ByVal xges As Double, ByVal yges As Double) As Single
-		Dim v0(1) As Double
-		Dim v1(1) As Double
-		Dim v2(1) As Double
-		Dim dot00 As Double
-		Dim dot01 As Double
-		Dim dot02 As Double
-		Dim dot11 As Double
-		Dim dot12 As Double
-		Dim invDenom As Double
-		Dim u As Double
-		Dim v As Double
-		Dim pt1 As dPoint
-		Dim pt2 As dPoint
-		Dim pt3 As dPoint
-		Dim dist As Double
+    Private Function GetDistance(ByRef tr As dTriangle, ByVal xges As Double, ByVal yges As Double) As Double
+        Dim v0(1) As Double
+        Dim v1(1) As Double
+        Dim v2(1) As Double
+        Dim dot00 As Double
+        Dim dot01 As Double
+        Dim dot02 As Double
+        Dim dot11 As Double
+        Dim dot12 As Double
+        Dim invDenom As Double
+        Dim u As Double
+        Dim v As Double
+        Dim pt1 As dPoint
+        Dim pt2 As dPoint
+        Dim pt3 As dPoint
+        Dim dist As Double
 
-		pt1 = tr.P1
-		pt2 = tr.P2
-		pt3 = tr.P3
+        pt1 = tr.P1
+        pt2 = tr.P2
+        pt3 = tr.P3
 
-		' Compute vectors        
-		v0(0) = pt3.X - pt1.X
-		v0(1) = pt3.Y - pt1.Y
+        ' Compute vectors        
+        v0(0) = pt3.X - pt1.X
+        v0(1) = pt3.Y - pt1.Y
 
-		v1(0) = pt2.X - pt1.X
-		v1(1) = pt2.Y - pt1.Y
+        v1(0) = pt2.X - pt1.X
+        v1(1) = pt2.Y - pt1.Y
 
-		v2(0) = xges - pt1.X
-		v2(1) = yges - pt1.Y
+        v2(0) = xges - pt1.X
+        v2(1) = yges - pt1.Y
 
-		' Compute dot products
-		dot00 = v0(0) * v0(0) + v0(1) * v0(1)
-		dot01 = v0(0) * v1(0) + v0(1) * v1(1)
-		dot02 = v0(0) * v2(0) + v0(1) * v2(1)
-		dot11 = v1(0) * v1(0) + v1(1) * v1(1)
-		dot12 = v1(0) * v2(0) + v1(1) * v2(1)
+        ' Compute dot products
+        dot00 = v0(0) * v0(0) + v0(1) * v0(1)
+        dot01 = v0(0) * v1(0) + v0(1) * v1(1)
+        dot02 = v0(0) * v2(0) + v0(1) * v2(1)
+        dot11 = v1(0) * v1(0) + v1(1) * v1(1)
+        dot12 = v1(0) * v2(0) + v1(1) * v2(1)
 
-		' Compute barycentric coordinates
-		invDenom = 1 / (dot00 * dot11 - dot01 * dot01)
-		u = (dot11 * dot02 - dot01 * dot12) * invDenom
-		v = (dot00 * dot12 - dot01 * dot02) * invDenom
+        ' Compute barycentric coordinates
+        invDenom = 1 / (dot00 * dot11 - dot01 * dot01)
+        u = (dot11 * dot02 - dot01 * dot12) * invDenom
+        v = (dot00 * dot12 - dot01 * dot02) * invDenom
 
 
-		If v < 0 Then
-			If u < 0 Then
-				dist = ((yges - pt1.Y) ^ 2 + (xges - pt1.X) ^ 2) ^ 0.5
+        If v < 0 Then
+            If u < 0 Then
+                dist = ((yges - pt1.Y) ^ 2 + (xges - pt1.X) ^ 2) ^ 0.5
 
-			ElseIf u > 1 Then
-				dist = ((yges - pt3.Y) ^ 2 + (xges - pt3.X) ^ 2) ^ 0.5
+            ElseIf u > 1 Then
+                dist = ((yges - pt3.Y) ^ 2 + (xges - pt3.X) ^ 2) ^ 0.5
 
-			Else
-				dist = DistPtToLine(pt1, pt3, xges, yges)
-			End If
+            Else
+                dist = DistPtToLine(pt1, pt3, xges, yges)
+            End If
 
-		ElseIf u < 0 Then
+        ElseIf u < 0 Then
 
-			If v > 1 Then
-				dist = ((yges - pt2.Y) ^ 2 + (xges - pt2.X) ^ 2) ^ 0.5
-			Else
-				dist = DistPtToLine(pt1, pt2, xges, yges)
-			End If
+            If v > 1 Then
+                dist = ((yges - pt2.Y) ^ 2 + (xges - pt2.X) ^ 2) ^ 0.5
+            Else
+                dist = DistPtToLine(pt1, pt2, xges, yges)
+            End If
 
-		Else 'u + v > 1
-			dist = DistPtToLine(pt3, pt2, xges, yges)
+        Else 'u + v > 1
+            dist = DistPtToLine(pt3, pt2, xges, yges)
 
-		End If
+        End If
 
-		Return Math.Abs(dist)
+        Return Math.Abs(dist)
 
-	End Function
+    End Function
 
 	Private Function DistPtToLine(ByRef pt1 As dPoint, ByRef pt2 As dPoint, ByVal x As Double, ByVal y As Double) As Double
 		Dim dist As Double

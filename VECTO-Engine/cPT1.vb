@@ -2,10 +2,10 @@
 Imports System.Reflection
 
 Public Class cPT1
-	Private ReadOnly lnU As New List(Of Single)
-	Private ReadOnly lPT1 As New List(Of Single)
+    Private ReadOnly lnU As New List(Of Double)
+    Private ReadOnly lPT1 As New List(Of Double)
 	Private iDim As Integer
-	Public Filepath As String
+    'Public Filepath As String
 
 	Public Function Init() As Boolean
 
@@ -48,23 +48,23 @@ Public Class cPT1
 	End Function
 
 
-	Public Function PT1(nU As Single) As Single
-		Dim i As Int32
+    Public Function PT1(nU As Double) As Double
+        Dim i As Int32
 
-		'Extrapolation for x < x(1)
-		If lnU(0) >= nU Then
-			i = 1
-			GoTo lbInt
-		End If
+        'Extrapolation for x < x(1)
+        If lnU(0) >= nU Then
+            i = 1
+            GoTo lbInt
+        End If
 
-		i = 0
-		Do While lnU(i) < nU And i < iDim
-			i += 1
-		Loop
+        i = 0
+        Do While lnU(i) < nU And i < iDim
+            i += 1
+        Loop
 
 
 lbInt:
-		'Interpolation
-		Return (nU - lnU(i - 1)) * (lPT1(i) - lPT1(i - 1)) / (lnU(i) - lnU(i - 1)) + lPT1(i - 1)
-	End Function
+        'Interpolation
+        Return (nU - lnU(i - 1)) * (lPT1(i) - lPT1(i - 1)) / (lnU(i) - lnU(i - 1)) + lPT1(i - 1)
+    End Function
 End Class

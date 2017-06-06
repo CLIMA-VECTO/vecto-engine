@@ -40,6 +40,21 @@ Public Class Form1
             WorkerMsg(tMsgID.Warn, "!!!     License expiring date (y/m/d): " & Lic.ExpTime & "     !!!")
         End If
 
+
+
+        'Fill values for standard NCVs in global dictionary
+        NCV_std.Add("Diesel / CI", 42.7)
+        NCV_std.Add("Ethanol / CI", 25.7)
+        NCV_std.Add("Petrol / PI", 41.5)
+        NCV_std.Add("Ethanol / PI", 29.1)
+        NCV_std.Add("LPG / PI", 46.0)
+        NCV_std.Add("Natural Gas / PI", 45.1)
+
+
+        'Messagebox: NOT FINAL VERSION
+        MsgBox("ATTENTION" & Chr(13) & Chr(13) & "The input and output formats of this version are not completely consistent with the technical annex of the regulation! " & Chr(13) & Chr(13) &
+               "This will be updated together with the next update of the main VECTO software (planned for July 2017).", MsgBoxStyle.Critical)
+
 	End Sub
 
 	Private Sub BtStart_Click(sender As Object, e As EventArgs) Handles BtStart.Click
@@ -48,14 +63,14 @@ Public Class Form1
         JobSuccess = False
 
 		Try
-			JobInit()
 
-			If Not CheckInput() Then
-				JobEnd()
-				Exit Sub
-			End If
+            JobInit()
 
-			Job = New cJob
+            If Not CheckInput() Then
+                JobEnd()
+                Exit Sub
+            End If
+
 
             Job.Manufacturer = Me.TbManufacturer.Text
             Job.Make = Me.TbMake.Text
@@ -67,10 +82,9 @@ Public Class Form1
             Job.NCVfuel = Me.TbNCVfuel.Text
 
             Job.MapFile = Me.TbFuelMap.Text
-            Job.R85TqFile = Me.TbFLC.Text
-            Job.R49TqFile = Me.TbFLC_Parent.Text
-            Job.R49DragFile = Me.TbMotoring.Text
-            'Job.WHTCmeasFile = Me.TbFLC_lower.Text
+            Job.FlcFile = Me.TbFLC.Text
+            Job.FlcParentFile = Me.TbFLC_Parent.Text
+            Job.DragFile = Me.TbMotoring.Text
 
             Job.FCspecMeas_ColdTot = Me.TbFCspecCold.Text
             Job.FCspecMeas_HotTot = Me.TbFCspecHot.Text
@@ -81,6 +95,94 @@ Public Class Form1
 
 
             Job.OutPath = Me.TbOutputFolder.Text & "\"
+
+
+
+
+
+
+            '**********************************************
+            '**********************************************
+            '**********************************************
+            '      TEST DATA  START
+            '**********************************************
+            '**********************************************
+            '**********************************************
+
+
+            'Test DataSet 1
+
+            'JobInit()
+
+
+            'Job.Manufacturer = "TUG"
+            'Job.Make = "Testengine"
+            'Job.TypeID = "Engine0815"
+            'Job.Idle_Parent = 600
+            'Job.Idle = 600
+            'Job.Displacement = 7700
+            'Job.FuelType = "Ethanol / CI"
+            'Job.NCVfuel = 42.3
+
+            'Job.MapFile = "J:\TE-Em\Projekte\I_2013_08_HDV_CO2_LOT_4_SR7\VECTO-Engine\VECTO_Engine ab v1.1\Testfolder\Tests v1.3\TUG demo data\Demo_Map_v2_2Nachkomma.csv"
+            ''Job.MapFile = "J:\TE-Em\Projekte\I_2013_08_HDV_CO2_LOT_4_SR7\VECTO-Engine\VECTO_Engine ab v1.1\Testfolder\Tests v1.3\TUG demo data\Demo_Map_v2_2Nachkomma_1pTorque5percent.csv"
+            'Job.FlcFile = "J:\TE-Em\Projekte\I_2013_08_HDV_CO2_LOT_4_SR7\VECTO-Engine\VECTO_Engine ab v1.1\Testfolder\Tests v1.3\TUG demo data\Demo_FullLoad_Parent_2Nachkomma_1rpmSteps.csv"
+            'Job.FlcParentFile = "J:\TE-Em\Projekte\I_2013_08_HDV_CO2_LOT_4_SR7\VECTO-Engine\VECTO_Engine ab v1.1\Testfolder\Tests v1.3\TUG demo data\Demo_FullLoad_Parent_2Nachkomma_1rpmSteps.csv"
+            'Job.DragFile = "J:\TE-Em\Projekte\I_2013_08_HDV_CO2_LOT_4_SR7\VECTO-Engine\VECTO_Engine ab v1.1\Testfolder\Tests v1.3\TUG demo data\Demo_Motoring_2Nachkomma_1rpmSteps.csv"
+
+            'Job.FCspecMeas_ColdTot = 200
+            'Job.FCspecMeas_HotTot = 200
+            'Job.FCspecMeas_HotUrb = 200
+            'Job.FCspecMeas_HotRur = 200
+            'Job.FCspecMeas_HotMw = 200
+            'Job.CF_RegPer = 1
+
+
+            'Job.OutPath = "J:\TE-Em\Projekte\I_2013_08_HDV_CO2_LOT_4_SR7\VECTO-Engine\VECTO_Engine ab v1.1\Testfolder\Tests v1.3\TUG demo data\results\"
+
+
+
+
+            'Test DataSet 2
+
+            'JobInit()
+
+
+            'Job.Manufacturer = "TUG"
+            'Job.Make = "Testengine"
+            'Job.TypeID = "Engine0815"
+            'Job.Idle_Parent = 550
+            'Job.Idle = 550
+            'Job.Displacement = 7700
+            'Job.FuelType = "Diesel / CI"
+            'Job.NCVfuel = 42.3
+
+            'Job.MapFile = "J:\TE-Em\Projekte\I_2013_08_HDV_CO2_LOT_4_SR7\VECTO-Engine\VECTO_Engine ab v1.1\Testfolder\Tests v1.3\Volvo\Volvo_map.csv"
+            'Job.FlcFile = "J:\TE-Em\Projekte\I_2013_08_HDV_CO2_LOT_4_SR7\VECTO-Engine\VECTO_Engine ab v1.1\Testfolder\Tests v1.3\Volvo\Volvo_flc.csv"
+            'Job.FlcParentFile = "J:\TE-Em\Projekte\I_2013_08_HDV_CO2_LOT_4_SR7\VECTO-Engine\VECTO_Engine ab v1.1\Testfolder\Tests v1.3\Volvo\Volvo_flc.csv"
+            'Job.DragFile = "J:\TE-Em\Projekte\I_2013_08_HDV_CO2_LOT_4_SR7\VECTO-Engine\VECTO_Engine ab v1.1\Testfolder\Tests v1.3\Volvo\Volvo_mot.csv"
+
+            'Job.FCspecMeas_ColdTot = 200
+            'Job.FCspecMeas_HotTot = 200
+            'Job.FCspecMeas_HotUrb = 200
+            'Job.FCspecMeas_HotRur = 200
+            'Job.FCspecMeas_HotMw = 200
+            'Job.CF_RegPer = 1
+
+
+            'Job.OutPath = "J:\TE-Em\Projekte\I_2013_08_HDV_CO2_LOT_4_SR7\VECTO-Engine\VECTO_Engine ab v1.1\Testfolder\Tests v1.3\Volvo\"
+
+
+
+            '**********************************************
+            '**********************************************
+            '**********************************************
+            '      TEST DATA  END
+            '**********************************************
+            '**********************************************
+            '**********************************************
+
+
 
         Catch ex As Exception
             ShowMsgDirect(ex.Message, tMsgID.Err)
@@ -211,9 +313,7 @@ Public Class Form1
             ShowMsgDirect("Idle speed of CO2-parent engine is not valid!", tMsgID.Err)
             Result = False
         Else
-            StringForSplit = Me.TbIdle_Parent.Text
-            StringsAfterSplit = StringForSplit.Split(New String() {"."c}, StringSplitOptions.RemoveEmptyEntries)
-            If StringsAfterSplit(1).Length <> 2 Then
+            If Not IsInteger(Me.TbIdle_Parent.Text) Then
                 ShowMsgDirect("Idle speed of CO2-parent engine needs to be rounded to the nearest whole number!", tMsgID.Err)
                 Result = False
             End If
@@ -222,11 +322,21 @@ Public Class Form1
         If Not IsNumeric(Me.TbIdle.Text) Then
             ShowMsgDirect("Engine idle speed is not valid!", tMsgID.Err)
             Result = False
+        Else
+            If Not IsInteger(Me.TbIdle.Text) Then
+                ShowMsgDirect("Engine idle speed needs to be rounded to the nearest whole number!", tMsgID.Err)
+                Result = False
+            End If
         End If
 
         If Not IsNumeric(Me.TbDisplacement.Text) Then
             ShowMsgDirect("Engine displacement is not valid!", tMsgID.Err)
             Result = False
+        Else
+            If Not IsInteger(Me.TbDisplacement.Text) Then
+                ShowMsgDirect("Engine displacement needs to be rounded to the nearest whole number!", tMsgID.Err)
+                Result = False
+            End If
         End If
 
         If Trim(Me.CbFuelType.Text) = "" Then
@@ -237,32 +347,125 @@ Public Class Form1
         If Not IsNumeric(Me.TbNCVfuel.Text) Then
             ShowMsgDirect("NCV of test fuel is not valid!", tMsgID.Err)
             Result = False
+        Else
+            StringForSplit = Me.TbNCVfuel.Text
+            If StringForSplit.Contains(".") Then
+                StringsAfterSplit = StringForSplit.Split(New String() {"."c}, StringSplitOptions.RemoveEmptyEntries)
+                If StringsAfterSplit(1).Length <> 3 Then
+                    ShowMsgDirect("NCV of test fuel needs to have exactly 3 digits after the decimal point!", tMsgID.Err)
+                    Result = False
+                End If
+            Else
+                ShowMsgDirect("NCV of test fuel does not contain a valid decimal separator!", tMsgID.Err)
+                Result = False
+            End If
         End If
 
         If Not IsNumeric(Me.TbCF_RegPer.Text) Then
             ShowMsgDirect("CF-RegPer is not valid!", tMsgID.Err)
             Result = False
+        Else
+            StringForSplit = Me.TbCF_RegPer.Text
+            If StringForSplit.Contains(".") Then
+                StringsAfterSplit = StringForSplit.Split(New String() {"."c}, StringSplitOptions.RemoveEmptyEntries)
+                If StringsAfterSplit(1).Length <> 2 Then
+                    ShowMsgDirect("CF-RegPer needs to have exactly 2 digits after the decimal point!", tMsgID.Err)
+                    Result = False
+                End If
+            Else
+                ShowMsgDirect("CF-RegPer does not contain a valid decimal separator!", tMsgID.Err)
+                Result = False
+            End If
         End If
+
 
         If Not IsNumeric(Me.TbFCspecCold.Text) Then
             ShowMsgDirect("Specific FC of WHTC coldstart is not valid!", tMsgID.Err)
             Result = False
+        Else
+            StringForSplit = Me.TbFCspecCold.Text
+            If StringForSplit.Contains(".") Then
+                StringsAfterSplit = StringForSplit.Split(New String() {"."c}, StringSplitOptions.RemoveEmptyEntries)
+                If StringsAfterSplit(1).Length <> 2 Then
+                    ShowMsgDirect("Specific FC of WHTC coldstart needs to have exactly 2 digits after the decimal point!", tMsgID.Err)
+                    Result = False
+                End If
+            Else
+                ShowMsgDirect("Specific FC of WHTC coldstart does not contain a valid decimal separator!", tMsgID.Err)
+                Result = False
+            End If
         End If
+
+
         If Not IsNumeric(Me.TbFCspecHot.Text) Then
             ShowMsgDirect("Specific FC of WHTC hotstart is not valid!", tMsgID.Err)
             Result = False
+        Else
+            StringForSplit = Me.TbFCspecHot.Text
+            If StringForSplit.Contains(".") Then
+                StringsAfterSplit = StringForSplit.Split(New String() {"."c}, StringSplitOptions.RemoveEmptyEntries)
+                If StringsAfterSplit(1).Length <> 2 Then
+                    ShowMsgDirect("Specific FC of WHTC hotstart needs to have exactly 2 digits after the decimal point!", tMsgID.Err)
+                    Result = False
+                End If
+            Else
+                ShowMsgDirect("Specific FC of WHTC hotstart does not contain a valid decimal separator!", tMsgID.Err)
+                Result = False
+            End If
         End If
+
+
         If Not IsNumeric(Me.TbFCspecUrb.Text) Then
             ShowMsgDirect("Specific FC of WHTC-Urban is not valid!", tMsgID.Err)
             Result = False
+        Else
+            StringForSplit = Me.TbFCspecUrb.Text
+            If StringForSplit.Contains(".") Then
+                StringsAfterSplit = StringForSplit.Split(New String() {"."c}, StringSplitOptions.RemoveEmptyEntries)
+                If StringsAfterSplit(1).Length <> 2 Then
+                    ShowMsgDirect("Specific FC of WHTC-Urban needs to have exactly 2 digits after the decimal point!", tMsgID.Err)
+                    Result = False
+                End If
+            Else
+                ShowMsgDirect("Specific FC of WHTC-Urban does not contain a valid decimal separator!", tMsgID.Err)
+                Result = False
+            End If
         End If
+
+
         If Not IsNumeric(Me.TbFCspecRur.Text) Then
             ShowMsgDirect("Specific FC of WHTC-Rural is not valid!", tMsgID.Err)
             Result = False
+        Else
+            StringForSplit = Me.TbFCspecRur.Text
+            If StringForSplit.Contains(".") Then
+                StringsAfterSplit = StringForSplit.Split(New String() {"."c}, StringSplitOptions.RemoveEmptyEntries)
+                If StringsAfterSplit(1).Length <> 2 Then
+                    ShowMsgDirect("Specific FC of WHTC-Rural needs to have exactly 2 digits after the decimal point!", tMsgID.Err)
+                    Result = False
+                End If
+            Else
+                ShowMsgDirect("Specific FC of WHTC-Rural does not contain a valid decimal separator!", tMsgID.Err)
+                Result = False
+            End If
         End If
+
+
         If Not IsNumeric(Me.TbFCspecMW.Text) Then
             ShowMsgDirect("Specific FC of WHTC-Motorway is not valid!", tMsgID.Err)
             Result = False
+        Else
+            StringForSplit = Me.TbFCspecMW.Text
+            If StringForSplit.Contains(".") Then
+                StringsAfterSplit = StringForSplit.Split(New String() {"."c}, StringSplitOptions.RemoveEmptyEntries)
+                If StringsAfterSplit(1).Length <> 2 Then
+                    ShowMsgDirect("Specific FC of WHTC-Motorway needs to have exactly 2 digits after the decimal point!", tMsgID.Err)
+                    Result = False
+                End If
+            Else
+                ShowMsgDirect("Specific FC of WHTC-Motorway does not contain a valid decimal separator!", tMsgID.Err)
+                Result = False
+            End If
         End If
 
         Return Result
@@ -322,19 +525,19 @@ Public Class Form1
     End Sub
 
 
-	Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
-		Dim dlog As New FolderBrowserDialog
-		If dlog.ShowDialog = Windows.Forms.DialogResult.OK Then Me.TbOutputFolder.Text = dlog.SelectedPath
-	End Sub
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        Dim dlog As New FolderBrowserDialog
+        If dlog.ShowDialog = Windows.Forms.DialogResult.OK Then Me.TbOutputFolder.Text = dlog.SelectedPath
+    End Sub
 
-	'Text-to-number
-	Public Function fTextboxToNumString(ByVal txt As String) As String
-		If Not IsNumeric(txt) Then
-			Return "0"
-		Else
-			Return txt
-		End If
-	End Function
+    'Text-to-number
+    Public Function fTextboxToNumString(ByVal txt As String) As String
+        If Not IsNumeric(txt) Then
+            Return "0"
+        Else
+            Return txt
+        End If
+    End Function
 
 
     ' Precalculation of WHTC test speeds and grid for fuel map
@@ -351,7 +554,8 @@ Public Class Form1
                 Exit Sub
             End If
 
-            JobPrecalc.R49TqFile = Me.TbFLC_Parent.Text
+            JobPrecalc.FlcParentFile = Me.TbFLC_Parent.Text
+            JobPrecalc.Idle_Parent = Me.TbIdle_Parent.Text
 
         Catch ex As Exception
             ShowMsgDirect(ex.Message, tMsgID.Err)
@@ -370,9 +574,20 @@ Public Class Form1
 
         'Check if files do exist       
         If Trim(Me.TbFLC_Parent.Text) = "" OrElse Not IO.File.Exists(Me.TbFLC_Parent.Text) Then
-            ShowMsgDirect("File for Full-Load of CO2-Parent engine not found!", tMsgID.Err)
+            ShowMsgDirect("File for full-Load curve of CO2-parent engine not found!", tMsgID.Err)
             Result = False
         End If
+
+        If Not IsNumeric(Me.TbIdle_Parent.Text) Then
+            ShowMsgDirect("Idle speed of CO2-parent engine is not valid!", tMsgID.Err)
+            Result = False
+        Else
+            If Not IsInteger(Me.TbIdle_Parent.Text) Then
+                ShowMsgDirect("Idle speed of CO2-parent engine needs to be rounded to the nearest whole number!", tMsgID.Err)
+                Result = False
+            End If
+        End If
+
 
         Return Result
 

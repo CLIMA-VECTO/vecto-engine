@@ -4,27 +4,27 @@
     Public Map As cMAP0
     Public PT1 As cPT1
 
-    Private lTime As New List(Of Single)
-    Private lnU As New List(Of Single)
-    Private lTq As New List(Of Single)
-    Private lFC As New List(Of Single)
-    Private lPe As New List(Of Single)
+    Private lTime As New List(Of Double)
+    Private lnU As New List(Of Double)
+    Private lTq As New List(Of Double)
+    Private lFC As New List(Of Double)
+    Private lPe As New List(Of Double)
     Private iDim As Integer
 
-    Public TotWork As Single
-    Public TotFCspec As Single
+    Public TotWork As Double
+    Public TotFCspec As Double
 
-    Public WHSC_n_idle As Single
-    Public WHSC_n_lo As Single
-    Public WHSC_n_hi As Single
-    Public WHSC_n_pref As Single
+    Public WHSC_n_idle As Double
+    Public WHSC_n_lo As Double
+    Public WHSC_n_hi As Double
+    Public WHSC_n_pref As Double
 
 
     Public Function InitCycle(ByVal Filepath As String) As Boolean
         Dim file As New cFile_V3
         Dim line As String()
-        Dim nU As Single
-        Dim Tq As Single
+        Dim nU As Double
+        Dim Tq As Double
 
 
         If Not file.OpenRead(Filepath) Then
@@ -91,13 +91,13 @@
     Public Function CalcFC() As Boolean
 
         Dim i As Integer
-        Dim Pe As Single
-        Dim nU As Single
-        Dim Tq As Single
-        Dim TqMax As Single
-        Dim Pmax As Single
-        Dim FC As Single
-        Dim PT1val As Single
+        Dim Pe As Double
+        Dim nU As Double
+        Dim Tq As Double
+        Dim TqMax As Double
+        Dim Pmax As Double
+        Dim FC As Double
+        Dim PT1val As Double
 
         Dim FCout As Boolean
 
@@ -138,7 +138,7 @@
 
             'FC Calc
             If Tq < 0 Then
-                'Torque < 0 in reference WHTC is always exactly drag torque, thus FC is 0 per definition
+                'Torque < 0 in reference WHTC is always exactly motoring torque, thus FC is 0 per definition
                 'Interpolation from FC map would also deliver 0
                 FC = 0
             Else
@@ -171,12 +171,12 @@
         Dim Work As Double
         Dim WorkSum As Double
         Dim i As Integer
-        Dim dt As Single
-        Dim dtFC As Single
-        Dim PeAvg As Single
-        Dim k As Single
-        Dim d As Single
-        Dim t0 As Single
+        Dim dt As Double
+        Dim dtFC As Double
+        Dim PeAvg As Double
+        Dim k As Double
+        Dim d As Double
+        Dim t0 As Double
 
         If lTime(iDim) < 1895 Then
             WorkerMsg(tMsgID.Err, "Cannot calculate WHSC results! Cycle is too short.")
@@ -199,7 +199,7 @@
             If i > 0 Then
 
                 If (lPe(i) <= 0 AndAlso lPe(i - 1) <= 0) Then
-                    'Both time steps idle/drag
+                    'Both time steps idle/motoring
 
                     PeAvg = 0
                     'corr GS 18.9.2015
@@ -207,7 +207,7 @@
                     dt = (lTime(i) - lTime(i - 1))
 
                 ElseIf lPe(i) * lPe(i - 1) <= 0 Then
-                    'One time step driving, other idle/drag
+                    'One time step driving, other idle/motoring
 
                     k = (lPe(i) - lPe(i - 1)) / (lTime(i) - lTime(i - 1))
                     d = lPe(i) - k * lTime(i)
