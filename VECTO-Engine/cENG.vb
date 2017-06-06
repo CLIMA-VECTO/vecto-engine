@@ -38,19 +38,19 @@ Public Class cENG
     ''' Engine displacement [ccm]. Saved in input file.
     ''' </summary>
     ''' <remarks></remarks>
-    Public Displ As Single
+    Public Displ As Double
 
     ''' <summary>
     ''' Idling speed [1/min]. Saved in input file.
     ''' </summary>
     ''' <remarks></remarks>
-    Public Nidle As Single
+    Public Nidle As Double
 
     ''' <summary>
     ''' Rotational inertia including flywheel [kgm²]. Saved in input file. Overwritten by generic value in Declaration mode.
     ''' </summary>
     ''' <remarks></remarks>
-    Public I_mot As Single
+    Public I_mot As Double
 
     ''' <summary>
     ''' List of full load/motoring curve files (.vfld)
@@ -92,31 +92,31 @@ Public Class cENG
     ''' WHTC Urban test results. Saved in input file. 
     ''' </summary>
     ''' <remarks></remarks>
-    Public WHTCurban As Single
+    Public WHTCurban As Double
 
     ''' <summary>
     ''' WHTC Rural test results. Saved in input file. 
     ''' </summary>
     ''' <remarks></remarks>
-    Public WHTCrural As Single
+    Public WHTCrural As Double
 
     ''' <summary>
     ''' WHTC Motorway test results. Saved in input file. 
     ''' </summary>
     ''' <remarks></remarks>
-    Public WHTCmw As Single
+    Public WHTCmw As Double
 
     ''' <summary>
     ''' Rated engine speed [1/min]. Engine speed at max. power. Defined in Init.
     ''' </summary>
     ''' <remarks></remarks>
-    Public Nrated As Single
+    Public Nrated As Double
 
     ''' <summary>
     ''' Maximum engine power [kW]. Power at rated engine speed.
     ''' </summary>
     ''' <remarks></remarks>
-    Public Pmax As Single
+    Public Pmax As Double
 
     Public SavedInDeclMode As Boolean
 

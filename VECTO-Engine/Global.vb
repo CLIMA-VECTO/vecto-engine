@@ -1,8 +1,8 @@
 ﻿Module GlobalDefinitions
 
-    Public Const AppVersion As String = "1.0"
+    Public Const AppVersion As String = "1.3"
     Public Const AppName As String = "VECTO-Engine"
-    Public Const AppVersionForm As String = " 1.1"
+    Public Const AppVersionForm As String = " 1.3"
 
 	Public Worker As System.ComponentModel.BackgroundWorker
 	Public MyAppPath As String
@@ -10,13 +10,15 @@
 
 	Public sKey As csKey
 
-    Public Const TqStepTol As Single = 20
-    Public Const nUStepTol As Single = 5
+    ' Global tolerances for FCMC points (speed and torque)
+    Public Const TqStepTol_abs As Double = 20
+    Public TqStepTol As Double
 
     Public SetCulture As Boolean
 
     Public NumWarnings As Integer
     Public CalcMode As Integer = 0
+    Public NCV_std As New Dictionary(Of String, Double)
 
 
 
@@ -35,9 +37,9 @@
 		Return ((nU * 2 * Math.PI / 60) * M / 1000)
 	End Function
 
-	Public Function nPeToTq(ByVal nU As Single, ByVal Pe As Double) As Single
-		Return Pe * 1000 / (nU * 2 * Math.PI / 60)
-	End Function
+    Public Function nPeToTq(ByVal nU As Double, ByVal Pe As Double) As Double
+        Return Pe * 1000 / (nU * 2 * Math.PI / 60)
+    End Function
 
 
 	
@@ -280,7 +282,19 @@
 			Public ElecSys As String = "ES"
 			Public PneumSys As String = "PS"
 		End Class
-	End Class
+    End Class
+
+
+
+    'Check if string is whole number
+    Public Function IsInteger(value As String) As Boolean
+        Dim output As Integer
+        If (Integer.TryParse(value, output)) Then
+            Return True
+        Else
+            Return False
+        End If
+    End Function
 
 End Module
 
