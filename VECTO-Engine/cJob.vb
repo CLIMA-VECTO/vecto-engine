@@ -7,11 +7,13 @@ Public Class cJob
     Public FlcFile As String
 
     Public Manufacturer As String
-    Public Make As String
-    Public TypeID As String
+    Public Model As String
+    Public CertNumber As String
     Public Idle_Parent As Double
     Public Idle As Double
     Public Displacement As Double
+    Public RatedPower As Integer
+    Public RatedSpeed As Integer
     Public FuelType As String
     Public NCVfuel As Double
 
@@ -37,6 +39,7 @@ Public Class cJob
     Public WHTCruralFactor As Double
     Public WHTCmotorwayFactor As Double
     Public ColdHotBalancingFactor As Double
+
 
     Public PT1 As cPT1
 
@@ -81,6 +84,17 @@ Public Class cJob
         If Not FlcParent.RpmCalc("CO2-parent full load") Then Return False
         If Not Flc.RpmCalc("actual engine full load") Then Return False
 
+        ' Plausibility check of input value in GUI for P_rated and n_rated
+        If Math.Abs(Flc.Pmax - RatedPower) / Flc.Pmax > 0.05 Then
+            WorkerMsg(tMsgID.Warn, "Rated power input in GUI deviates by more than +/- 5% from rated power calculated from engine full-load curve (" & RatedPower & "[kW] vs. " &
+                      Math.Round(Flc.Pmax, 2) & "[kW]).")
+        End If
+
+
+
+
+
+
         'Assign char. speeds from full-load curve to Map
         MAP.Map_n_idle = FlcParent.n_idle
         MAP.Map_n_lo = FlcParent.n_lo
@@ -90,13 +104,14 @@ Public Class cJob
 
         'DEBUG ONLY
 #If DEBUG Then
-        If Not MAP.WriteFLD(OutPath & "DEBUG_" & Manufacturer & "_" & Make & "_" & TypeID & "_FLC_forMapCheck.vfld", False) Then Return False
+		If Not MAP.WriteFLD(OutPath & "DEBUG_" & Manufacturer & "_" & Model & "_" & "_FLC_forMapCheck.vfld", False) Then Return False
 #End If
 
 
 
         'Analyse FC Map
-        WorkerMsg(tMsgID.Normal, "Analysing Map")
+        'WorkerMsg(tMsgID.Normal, "Analysing Map")
+        '  >>> now inside cMAP0
         If Not MAP.Init() Then Return False
 
         'Extrapolate fuel consumption map to cover knees in full load curve
@@ -195,14 +210,14 @@ Public Class cJob
         'MsgBox(MAP.NCV_CorrectionFactor)
 
         'Write output files
-        WorkerMsg(tMsgID.Normal, "Writing output files")
+        WorkerMsg(tMsgID.Normal, "Writing XML output file")
         'If Not MAP.WriteMap(OutPath & fFILE(MapFile, False) & "_mod.vmap") Then Return False
-        If Not MAP.WriteMap(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Make & "_" & TypeID & "_FCmap.vmap") Then Return False
+        'If Not MAP.WriteMap(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Model & "_" & CertNumber & "_FCmap.vmap") Then Return False
         'If Not MAP.WriteFLD(OutPath & fFILE(MapFile, False) & "_" & fFILE(FlcFile, False) & ".vfld") Then Return False
-        If Not MAP.WriteFLD(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Make & "_" & TypeID & "_FLC.vfld", True) Then Return False
+        'If Not MAP.WriteFLD(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Model & "_" & CertNumber & "_FLC.vfld", True) Then Return False
         'If Not WriteTransFile(OutPath & "WHTC-Correction-Factors.xml") Then Return False
-        MAP.WriteXmlComponentFile(OutPath & Manufacturer & "_" & Make & "_" & TypeID & ".xml",
-                                  fFILE(FlcFile, False), Me)
+		MAP.WriteXmlComponentFile(OutPath & Manufacturer & "_" & Model & "_" & ".xml",
+								  fFILE(FlcFile, False), Me)
 
         'RpmWarnings()
         'RpmWarningsGearshifting()
@@ -215,6 +230,12 @@ Public Class cJob
                       "ATTENTION:  " & NumWarnings &
                       " Warning(s) occured: Please check detailled descriptions in 'Message Window'!")
         End If
+
+
+
+        'Messagebox: VALID DESPITE OF WARNINGS
+        MsgBox("DATA EVALUATION IS COMPLETED." & Chr(13) & Chr(13) & "The results produced are valid for certification despite any warnings displayed in the message window!" & Chr(13) & Chr(13) &
+               "Nevertheless, causes for warnings shall be analyzed together with the Technical Service or Type Approval Authority.", MsgBoxStyle.Information, MsgBoxStyle.OkOnly)
 
 
         Return True

@@ -3,11 +3,14 @@
 	Public FilePath As String
     Public LnU As New List(Of Double)
     Public LTq As New List(Of Double)
+    Public LnU_orig As New List(Of Double)
+    Public LTq_orig As New List(Of Double)
     Public iDim As Integer
+    Public iDim_orig As Integer
     
 
     Public TqMax As Double
-    Private Pmax As Double
+    Public Pmax As Double
 
     Public n_idle As Double
     Public n_lo As Double
@@ -43,12 +46,17 @@
         Dim LnU_DevAvgCheck As New List(Of Double)
         Dim LTq_DevAvgCheck As New List(Of Double)
         Dim Tq_AvgCheck As Double
+        Dim i As Integer
+        Dim i_2 As Integer
+        Dim i_3 As Integer
 
         'Reset
         LnU.Clear()
         LTq.Clear()
         LnU_temp.Clear()
         LTq_temp.Clear()
+        LnU_orig.Clear()
+        LTq_orig.Clear()
         iDim_temp = -1
         iDim = -1
 
@@ -112,6 +120,7 @@
                 LnU_temp.Add(line(0))
                 LTq_temp.Add(line(1))
 
+
                 'End If
 
                 iDim_temp += 1
@@ -130,10 +139,14 @@
 
 
 
+        iDim_temp = LnU_temp.Count - 1
+
 
         '####################################
         ' START: PRE-PROCESSING OF INPUT DATA
         '####################################
+
+
 
         'identify lowest and highest engine speed in dataset
         lowest_nU = LnU_temp(0)
@@ -160,14 +173,62 @@
             nEng_forLoop += 0.01
         Loop
 
+
+
+        'Calc TqMax from original input before pre-processing (otherwise the definition of grid points for the fuel map  is not correct)
+        TqMax = LTq(0)
+        For i = 1 To (LTq.Count - 1)
+            If LTq(i) > TqMax Then
+                TqMax = LTq(i)
+            End If
+        Next
+
+
+
         LnU_temp.Clear()
         LTq_temp.Clear()
         LnU_temp.AddRange(LnU)
         LTq_temp.AddRange(LTq)
+        LnU_orig.AddRange(LnU)
+        LTq_orig.AddRange(LTq)
         'values are from now on stored in "temp" variables
         iDim_temp = LnU_temp.Count - 1
         LnU.Clear()
         LTq.Clear()
+
+
+
+        'Averaging for removal of duplicates in original full-load data
+        i = 0
+        Do While LnU_orig(i) < highest_nU
+            i_2 = i
+            CountNumVal = 1
+            nU_forLoop = LnU_orig(i)
+            Tq_forLoop = LTq_orig(i)
+            Do While LnU_orig(i_2) < highest_nU
+                If LnU_orig(i_2 + 1) = LnU_orig(i_2) Then
+                    CountNumVal += 1
+                    nU_forLoop += LnU_orig(i_2 + 1)
+                    Tq_forLoop += LTq_orig(i_2 + 1)
+                    i_3 = i_2 + 1
+                End If
+                i_2 += 1
+            Loop
+            LnU.Add(nU_forLoop / CountNumVal)
+            LTq.Add(Tq_forLoop / CountNumVal)
+            If i_3 > i Then
+                i = i_3 + 1
+            Else
+                i += 1
+            End If
+        Loop
+        LnU_orig.AddRange(LnU)
+        LTq_orig.AddRange(LTq)
+        iDim_orig = LnU_orig.Count - 1
+        LnU.Clear()
+        LTq.Clear()
+
+
 
 
         'Check if negative torque values are existing in full load curve (only highest 5% of all points are allowed to have negative torque values)
@@ -191,18 +252,25 @@
                 CountNumVal += 1
 
                 'Check stepsize
-                If ChecknUSteps Then
-                    If LnU_temp(i + 1) - LnU_temp(i) > 9 Then
-                        WorkerMsg(tMsgID.Warn, "Possible data error in full load or motoring curve!" & " (" & FilePath & ")")
-                        WorkerMsg(tMsgID.Warn, "     >>> Engine speed steps > 9 [1/min] occur!")
-                        Return False
-                    End If
-                End If
+                'If ChecknUSteps Then
+                '    If LnU_temp(i + 1) - LnU_temp(i) > 9 Then
+                '        WorkerMsg(tMsgID.Warn, "Possible data error in full load or motoring curve!" & " (" & FilePath & ")")
+                '        WorkerMsg(tMsgID.Warn, "     >>> Engine speed steps > 9 [1/min] occur!")
+                '        Return False
+                '    End If
+                'End If
 
             End If
 
         Next
         delta_nU = delta_nU / CountNumVal
+        If ChecknUSteps Then
+            If delta_nU > 9 Then
+                WorkerMsg(tMsgID.Warn, "Possible data error in full load or motoring curve!" & " (" & FilePath & ")")
+                WorkerMsg(tMsgID.Warn, "     >>> Average engine speed stepwidth > 9 [1/min] !")
+                Return False
+            End If
+        End If
 
 
 
@@ -458,13 +526,7 @@
         End If
 
 
-        'Calc TqMax
-        TqMax = LTq(0)
-        For i = 1 To iDim
-            If LTq(i) > TqMax Then
-                TqMax = LTq(i)
-            End If
-        Next
+
 
         Return True
 
@@ -716,6 +778,29 @@ lbEr:
 lbInt:
         'Interpolation
         Return (nU - LnU(i - 1)) * (LTq(i) - LTq(i - 1)) / (LnU(i) - LnU(i - 1)) + LTq(i - 1)
+    End Function
+
+
+
+
+    Public Function Tq_orig(ByVal nU As Double) As Double
+        Dim i As Int32
+
+        'Extrapolation for x < x(1)
+        If LnU_orig(0) >= nU Then
+            i = 1
+            GoTo lbInt
+        End If
+
+        i = 0
+        Do While LnU_orig(i) < nU And i < iDim_orig
+            i += 1
+        Loop
+
+
+lbInt:
+        'Interpolation
+        Return (nU - LnU_orig(i - 1)) * (LTq_orig(i) - LTq_orig(i - 1)) / (LnU_orig(i) - LnU_orig(i - 1)) + LTq_orig(i - 1)
     End Function
 
 

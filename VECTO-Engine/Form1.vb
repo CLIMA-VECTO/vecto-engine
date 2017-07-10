@@ -51,10 +51,6 @@ Public Class Form1
         NCV_std.Add("Natural Gas / PI", 45.1)
 
 
-        'Messagebox: NOT FINAL VERSION
-        MsgBox("ATTENTION" & Chr(13) & Chr(13) & "The input and output formats of this version are not completely consistent with the technical annex of the regulation! " & Chr(13) & Chr(13) &
-               "This will be updated together with the next update of the main VECTO software (planned for July 2017).", MsgBoxStyle.Critical)
-
 	End Sub
 
 	Private Sub BtStart_Click(sender As Object, e As EventArgs) Handles BtStart.Click
@@ -63,6 +59,12 @@ Public Class Form1
         JobSuccess = False
 
 		Try
+
+            '**********************************************
+            'REAL PART FOR INPUT DATA ASSIGNMENT
+            '**********************************************
+
+
 
             JobInit()
 
@@ -73,11 +75,13 @@ Public Class Form1
 
 
             Job.Manufacturer = Me.TbManufacturer.Text
-            Job.Make = Me.TbMake.Text
-            Job.TypeID = Me.TbTypeID.Text
+            Job.Model = Me.TbModel.Text
+            Job.CertNumber = Me.TbCertNumber.Text
             Job.Idle_Parent = Me.TbIdle_Parent.Text
             Job.Idle = Me.TbIdle.Text
             Job.Displacement = Me.TbDisplacement.Text
+            Job.RatedPower = Me.TbRatedPower.Text
+            Job.RatedSpeed = Me.TbRatedSpeed.Text
             Job.FuelType = Me.CbFuelType.Text
             Job.NCVfuel = Me.TbNCVfuel.Text
 
@@ -98,6 +102,10 @@ Public Class Form1
 
 
 
+            '**********************************************
+            'REAL PART FOR INPUT DATA ASSIGNMENT - END
+            '**********************************************
+
 
 
 
@@ -116,11 +124,13 @@ Public Class Form1
 
 
             'Job.Manufacturer = "TUG"
-            'Job.Make = "Testengine"
-            'Job.TypeID = "Engine0815"
+            'Job.Model = "Testengine"
+            'Job.CertNumber = "Engine0815"
             'Job.Idle_Parent = 600
             'Job.Idle = 600
             'Job.Displacement = 7700
+            'Job.RatedPower = Me.TbRatedPower.Text
+            'Job.RatedSpeed = Me.TbRatedSpeed.Text
             'Job.FuelType = "Ethanol / CI"
             'Job.NCVfuel = 42.3
 
@@ -149,11 +159,13 @@ Public Class Form1
 
 
             'Job.Manufacturer = "TUG"
-            'Job.Make = "Testengine"
-            'Job.TypeID = "Engine0815"
+            'Job.Model = "Testengine"
+            'Job.CertNumber = "Engine0815"
             'Job.Idle_Parent = 550
             'Job.Idle = 550
             'Job.Displacement = 7700
+            'Job.RatedPower = 390
+            'Job.RatedSpeed = 2000
             'Job.FuelType = "Diesel / CI"
             'Job.NCVfuel = 42.3
 
@@ -293,19 +305,22 @@ Public Class Form1
         End If
 
 
+
+
+
         'check all input fields, either string or numeric value
         If Trim(Me.TbManufacturer.Text) = "" Then
             ShowMsgDirect("Field ""Manufacturer"" is empty!", tMsgID.Err)
             Result = False
         End If
 
-        If Trim(Me.TbMake.Text) = "" Then
-            ShowMsgDirect("Field ""Make"" is empty!", tMsgID.Err)
+        If Trim(Me.TbModel.Text) = "" Then
+            ShowMsgDirect("Field ""Model"" is empty!", tMsgID.Err)
             Result = False
         End If
 
-        If Trim(Me.TbTypeID.Text) = "" Then
-            ShowMsgDirect("Field ""Type ID"" is empty!", tMsgID.Err)
+        If Trim(Me.TbCertNumber.Text) = "" Then
+            ShowMsgDirect("Field ""Certification Number"" is empty!", tMsgID.Err)
             Result = False
         End If
 
@@ -335,6 +350,25 @@ Public Class Form1
         Else
             If Not IsInteger(Me.TbDisplacement.Text) Then
                 ShowMsgDirect("Engine displacement needs to be rounded to the nearest whole number!", tMsgID.Err)
+                Result = False
+            End If
+        End If
+
+        If Not IsNumeric(Me.TbRatedPower.Text) Then
+            ShowMsgDirect("Engine rated power is not valid!", tMsgID.Err)
+            Result = False
+        Else
+            If Not IsInteger(Me.TbRatedPower.Text) Then
+                ShowMsgDirect("Engine rated power needs to be rounded to the nearest whole number!", tMsgID.Err)
+                Result = False
+            End If
+        End If
+        If Not IsNumeric(Me.TbRatedSpeed.Text) Then
+            ShowMsgDirect("Engine rated speed is not valid!", tMsgID.Err)
+            Result = False
+        Else
+            If Not IsInteger(Me.TbRatedSpeed.Text) Then
+                ShowMsgDirect("Engine rated speed needs to be rounded to the nearest whole number!", tMsgID.Err)
                 Result = False
             End If
         End If
@@ -467,6 +501,7 @@ Public Class Form1
                 Result = False
             End If
         End If
+
 
         Return Result
 

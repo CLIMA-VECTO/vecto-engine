@@ -66,6 +66,13 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="VectoCommon, Version=3.1.2.903, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Libraries\VectoCommon.dll</HintPath>
+    </Reference>
+    <Reference Include="VectoHashing">
+      <HintPath>..\Libraries\VectoHashing.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.VisualBasic" />

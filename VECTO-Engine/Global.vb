@@ -1,8 +1,8 @@
 ﻿Module GlobalDefinitions
 
-    Public Const AppVersion As String = "1.3"
+    Public Const AppVersion As String = "1.4"
     Public Const AppName As String = "VECTO-Engine"
-    Public Const AppVersionForm As String = " 1.3"
+    Public Const AppVersionForm As String = " 1.4"
 
 	Public Worker As System.ComponentModel.BackgroundWorker
 	Public MyAppPath As String
