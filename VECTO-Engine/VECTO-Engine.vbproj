@@ -162,6 +162,10 @@
     <EmbeddedResource Include="Resources\PT1.csv" />
     <None Include="Resources\VectoEngine_6_cropV164pix.jpg" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\F_ENG.ico" />
+    <Content Include="Resources\F_ENG.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

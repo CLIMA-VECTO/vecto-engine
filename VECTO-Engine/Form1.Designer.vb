@@ -1,27 +1,56 @@
-﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+﻿'
+' This file is part of VECTO-Engine.
+'
+' Copyright © 2012-2017 European Union
+'
+' Developed by Graz University of Technology,
+'              Institute of Internal Combustion Engines and Thermodynamics,
+'              Institute of Technical Informatics
+'
+' VECTO is licensed under the EUPL, Version 1.1 or - as soon they will be approved
+' by the European Commission - subsequent versions of the EUPL (the "Licence");
+' You may not use VECTO except in compliance with the Licence.
+' You may obtain a copy of the Licence at:
+'
+' https://joinup.ec.europa.eu/community/eupl/og_page/eupl
+'
+' Unless required by applicable law or agreed to in writing, VECTO
+' distributed under the Licence is distributed on an "AS IS" basis,
+' WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+' See the Licence for the specific language governing permissions and
+' limitations under the Licence.
+'
+' Authors:
+'   Stefan Hausberger, hausberger@ivt.tugraz.at, IVT, Graz University of Technology
+'   Raphael Luz, luz@ivt.tugraz.at, IVT, Graz University of Technology
+'   Markus Quaritsch, markus.quaritsch@tugraz.at, IVT, Graz University of Technology
+'   Martin Rexeis, rexeis@ivt.tugraz.at, IVT, Graz University of Technology
+'   Gérard Silberholz, silberholz@ivt.tugraz.at, IVT, Graz University of Technology
+'
+<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
 Partial Class Form1
-    Inherits System.Windows.Forms.Form
+	Inherits System.Windows.Forms.Form
 
-    'Das Formular überschreibt den Löschvorgang, um die Komponentenliste zu bereinigen.
-    <System.Diagnostics.DebuggerNonUserCode()> _
-    Protected Overrides Sub Dispose(ByVal disposing As Boolean)
-        Try
-            If disposing AndAlso components IsNot Nothing Then
-                components.Dispose()
-            End If
-        Finally
-            MyBase.Dispose(disposing)
-        End Try
-    End Sub
+	'Das Formular überschreibt den Löschvorgang, um die Komponentenliste zu bereinigen.
+	<System.Diagnostics.DebuggerNonUserCode()> _
+	Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+		Try
+			If disposing AndAlso components IsNot Nothing Then
+				components.Dispose()
+			End If
+		Finally
+			MyBase.Dispose(disposing)
+		End Try
+	End Sub
 
-    'Wird vom Windows Form-Designer benötigt.
-    Private components As System.ComponentModel.IContainer
+	'Wird vom Windows Form-Designer benötigt.
+	Private components As System.ComponentModel.IContainer
 
-    'Hinweis: Die folgende Prozedur ist für den Windows Form-Designer erforderlich.
-    'Das Bearbeiten ist mit dem Windows Form-Designer möglich.  
-    'Das Bearbeiten mit dem Code-Editor ist nicht möglich.
-    <System.Diagnostics.DebuggerStepThrough()> _
-    Private Sub InitializeComponent()
+	'Hinweis: Die folgende Prozedur ist für den Windows Form-Designer erforderlich.
+	'Das Bearbeiten ist mit dem Windows Form-Designer möglich.  
+	'Das Bearbeiten mit dem Code-Editor ist nicht möglich.
+	<System.Diagnostics.DebuggerStepThrough()> _
+	Private Sub InitializeComponent()
 		Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Form1))
 		Me.Label3 = New System.Windows.Forms.Label()
 		Me.TbFCspecCold = New System.Windows.Forms.TextBox()
@@ -796,75 +825,75 @@ Partial Class Form1
 		Me.ResumeLayout(False)
 
 	End Sub
-    Friend WithEvents Label3 As System.Windows.Forms.Label
-    Friend WithEvents TbFCspecCold As System.Windows.Forms.TextBox
-    Friend WithEvents Label4 As System.Windows.Forms.Label
-    Friend WithEvents Label5 As System.Windows.Forms.Label
-    Friend WithEvents TbFCspecMW As System.Windows.Forms.TextBox
-    Friend WithEvents Label6 As System.Windows.Forms.Label
-    Friend WithEvents Label7 As System.Windows.Forms.Label
-    Friend WithEvents TbFCspecRur As System.Windows.Forms.TextBox
-    Friend WithEvents Label8 As System.Windows.Forms.Label
-    Friend WithEvents Label9 As System.Windows.Forms.Label
-    Friend WithEvents TbFCspecUrb As System.Windows.Forms.TextBox
-    Friend WithEvents Label10 As System.Windows.Forms.Label
-    Friend WithEvents GrInput As System.Windows.Forms.GroupBox
-    Friend WithEvents GrRpm As System.Windows.Forms.GroupBox
-    Friend WithEvents TbFCspecHot As System.Windows.Forms.TextBox
-    Friend WithEvents Label20 As System.Windows.Forms.Label
-    Friend WithEvents Label19 As System.Windows.Forms.Label
-    Friend WithEvents GrOutput As System.Windows.Forms.GroupBox
-    Friend WithEvents BtStart As System.Windows.Forms.Button
-    Friend WithEvents BgWorker As System.ComponentModel.BackgroundWorker
-    Friend WithEvents LvMsg As System.Windows.Forms.ListView
-    Friend WithEvents ColumnHeader1 As System.Windows.Forms.ColumnHeader
-    Friend WithEvents TbOutputFolder As System.Windows.Forms.TextBox
-    Friend WithEvents Button5 As System.Windows.Forms.Button
-    Friend WithEvents Label14 As System.Windows.Forms.Label
-    Friend WithEvents PictureBox1 As System.Windows.Forms.PictureBox
-    Friend WithEvents BtPrecalc As System.Windows.Forms.Button
-    Friend WithEvents GroupBox1 As System.Windows.Forms.GroupBox
-    Friend WithEvents GroupBox3 As System.Windows.Forms.GroupBox
-    Friend WithEvents Label13 As System.Windows.Forms.Label
-    Friend WithEvents Label16 As System.Windows.Forms.Label
-    Friend WithEvents TbIdle_Parent As System.Windows.Forms.TextBox
-    Friend WithEvents GroupBox2 As System.Windows.Forms.GroupBox
-    Friend WithEvents Label11 As System.Windows.Forms.Label
-    Friend WithEvents Label12 As System.Windows.Forms.Label
-    Friend WithEvents Label2 As System.Windows.Forms.Label
-    Friend WithEvents Label1 As System.Windows.Forms.Label
-    Friend WithEvents TbFLC As System.Windows.Forms.TextBox
-    Friend WithEvents Button2 As System.Windows.Forms.Button
-    Friend WithEvents TbMotoring As System.Windows.Forms.TextBox
-    Friend WithEvents Button3 As System.Windows.Forms.Button
-    Friend WithEvents TbFLC_Parent As System.Windows.Forms.TextBox
-    Friend WithEvents Button1 As System.Windows.Forms.Button
-    Friend WithEvents TbFuelMap As System.Windows.Forms.TextBox
-    Friend WithEvents BtOpenMap As System.Windows.Forms.Button
-    Friend WithEvents Label17 As System.Windows.Forms.Label
-    Friend WithEvents TbCF_RegPer As System.Windows.Forms.TextBox
-    Friend WithEvents CbFuelType As System.Windows.Forms.ComboBox
-    Friend WithEvents Label29 As System.Windows.Forms.Label
-    Friend WithEvents Label30 As System.Windows.Forms.Label
-    Friend WithEvents TbNCVfuel As System.Windows.Forms.TextBox
-    Friend WithEvents Label28 As System.Windows.Forms.Label
-    Friend WithEvents Label25 As System.Windows.Forms.Label
-    Friend WithEvents Label26 As System.Windows.Forms.Label
-    Friend WithEvents TbDisplacement As System.Windows.Forms.TextBox
-    Friend WithEvents Label18 As System.Windows.Forms.Label
-    Friend WithEvents Label24 As System.Windows.Forms.Label
-    Friend WithEvents TbIdle As System.Windows.Forms.TextBox
-    Friend WithEvents Label22 As System.Windows.Forms.Label
-    Friend WithEvents TbCertNumber As System.Windows.Forms.TextBox
-    Friend WithEvents Label15 As System.Windows.Forms.Label
-    Friend WithEvents TbModel As System.Windows.Forms.TextBox
-    Friend WithEvents Label21 As System.Windows.Forms.Label
-    Friend WithEvents TbManufacturer As System.Windows.Forms.TextBox
-    Friend WithEvents Label31 As System.Windows.Forms.Label
-    Friend WithEvents Label32 As System.Windows.Forms.Label
-    Friend WithEvents TbRatedSpeed As System.Windows.Forms.TextBox
-    Friend WithEvents Label23 As System.Windows.Forms.Label
-    Friend WithEvents Label27 As System.Windows.Forms.Label
-    Friend WithEvents TbRatedPower As System.Windows.Forms.TextBox
+	Friend WithEvents Label3 As System.Windows.Forms.Label
+	Friend WithEvents TbFCspecCold As System.Windows.Forms.TextBox
+	Friend WithEvents Label4 As System.Windows.Forms.Label
+	Friend WithEvents Label5 As System.Windows.Forms.Label
+	Friend WithEvents TbFCspecMW As System.Windows.Forms.TextBox
+	Friend WithEvents Label6 As System.Windows.Forms.Label
+	Friend WithEvents Label7 As System.Windows.Forms.Label
+	Friend WithEvents TbFCspecRur As System.Windows.Forms.TextBox
+	Friend WithEvents Label8 As System.Windows.Forms.Label
+	Friend WithEvents Label9 As System.Windows.Forms.Label
+	Friend WithEvents TbFCspecUrb As System.Windows.Forms.TextBox
+	Friend WithEvents Label10 As System.Windows.Forms.Label
+	Friend WithEvents GrInput As System.Windows.Forms.GroupBox
+	Friend WithEvents GrRpm As System.Windows.Forms.GroupBox
+	Friend WithEvents TbFCspecHot As System.Windows.Forms.TextBox
+	Friend WithEvents Label20 As System.Windows.Forms.Label
+	Friend WithEvents Label19 As System.Windows.Forms.Label
+	Friend WithEvents GrOutput As System.Windows.Forms.GroupBox
+	Friend WithEvents BtStart As System.Windows.Forms.Button
+	Friend WithEvents BgWorker As System.ComponentModel.BackgroundWorker
+	Friend WithEvents LvMsg As System.Windows.Forms.ListView
+	Friend WithEvents ColumnHeader1 As System.Windows.Forms.ColumnHeader
+	Friend WithEvents TbOutputFolder As System.Windows.Forms.TextBox
+	Friend WithEvents Button5 As System.Windows.Forms.Button
+	Friend WithEvents Label14 As System.Windows.Forms.Label
+	Friend WithEvents PictureBox1 As System.Windows.Forms.PictureBox
+	Friend WithEvents BtPrecalc As System.Windows.Forms.Button
+	Friend WithEvents GroupBox1 As System.Windows.Forms.GroupBox
+	Friend WithEvents GroupBox3 As System.Windows.Forms.GroupBox
+	Friend WithEvents Label13 As System.Windows.Forms.Label
+	Friend WithEvents Label16 As System.Windows.Forms.Label
+	Friend WithEvents TbIdle_Parent As System.Windows.Forms.TextBox
+	Friend WithEvents GroupBox2 As System.Windows.Forms.GroupBox
+	Friend WithEvents Label11 As System.Windows.Forms.Label
+	Friend WithEvents Label12 As System.Windows.Forms.Label
+	Friend WithEvents Label2 As System.Windows.Forms.Label
+	Friend WithEvents Label1 As System.Windows.Forms.Label
+	Friend WithEvents TbFLC As System.Windows.Forms.TextBox
+	Friend WithEvents Button2 As System.Windows.Forms.Button
+	Friend WithEvents TbMotoring As System.Windows.Forms.TextBox
+	Friend WithEvents Button3 As System.Windows.Forms.Button
+	Friend WithEvents TbFLC_Parent As System.Windows.Forms.TextBox
+	Friend WithEvents Button1 As System.Windows.Forms.Button
+	Friend WithEvents TbFuelMap As System.Windows.Forms.TextBox
+	Friend WithEvents BtOpenMap As System.Windows.Forms.Button
+	Friend WithEvents Label17 As System.Windows.Forms.Label
+	Friend WithEvents TbCF_RegPer As System.Windows.Forms.TextBox
+	Friend WithEvents CbFuelType As System.Windows.Forms.ComboBox
+	Friend WithEvents Label29 As System.Windows.Forms.Label
+	Friend WithEvents Label30 As System.Windows.Forms.Label
+	Friend WithEvents TbNCVfuel As System.Windows.Forms.TextBox
+	Friend WithEvents Label28 As System.Windows.Forms.Label
+	Friend WithEvents Label25 As System.Windows.Forms.Label
+	Friend WithEvents Label26 As System.Windows.Forms.Label
+	Friend WithEvents TbDisplacement As System.Windows.Forms.TextBox
+	Friend WithEvents Label18 As System.Windows.Forms.Label
+	Friend WithEvents Label24 As System.Windows.Forms.Label
+	Friend WithEvents TbIdle As System.Windows.Forms.TextBox
+	Friend WithEvents Label22 As System.Windows.Forms.Label
+	Friend WithEvents TbCertNumber As System.Windows.Forms.TextBox
+	Friend WithEvents Label15 As System.Windows.Forms.Label
+	Friend WithEvents TbModel As System.Windows.Forms.TextBox
+	Friend WithEvents Label21 As System.Windows.Forms.Label
+	Friend WithEvents TbManufacturer As System.Windows.Forms.TextBox
+	Friend WithEvents Label31 As System.Windows.Forms.Label
+	Friend WithEvents Label32 As System.Windows.Forms.Label
+	Friend WithEvents TbRatedSpeed As System.Windows.Forms.TextBox
+	Friend WithEvents Label23 As System.Windows.Forms.Label
+	Friend WithEvents Label27 As System.Windows.Forms.Label
+	Friend WithEvents TbRatedPower As System.Windows.Forms.TextBox
 
 End Class
