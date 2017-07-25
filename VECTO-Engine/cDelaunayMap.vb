@@ -1,62 +1,79 @@
-' Copyright 2014 European Union.
-' Licensed under the EUPL (the 'Licence');
 '
-' * You may not use this work except in compliance with the Licence.
-' * You may obtain a copy of the Licence at: http://ec.europa.eu/idabc/eupl
-' * Unless required by applicable law or agreed to in writing,
-'   software distributed under the Licence is distributed on an "AS IS" basis,
-'   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+' This file is part of VECTO-Engine.
 '
-' See the LICENSE.txt for the specific language governing permissions and limitations.
-Imports System.Collections.Generic
+' Copyright © 2012-2017 European Union
+'
+' Developed by Graz University of Technology,
+'              Institute of Internal Combustion Engines and Thermodynamics,
+'              Institute of Technical Informatics
+'
+' VECTO is licensed under the EUPL, Version 1.1 or - as soon they will be approved
+' by the European Commission - subsequent versions of the EUPL (the "Licence");
+' You may not use VECTO except in compliance with the Licence.
+' You may obtain a copy of the Licence at:
+'
+' https://joinup.ec.europa.eu/community/eupl/og_page/eupl
+'
+' Unless required by applicable law or agreed to in writing, VECTO
+' distributed under the Licence is distributed on an "AS IS" basis,
+' WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+' See the Licence for the specific language governing permissions and
+' limitations under the Licence.
+'
+' Authors:
+'   Stefan Hausberger, hausberger@ivt.tugraz.at, IVT, Graz University of Technology
+'   Raphael Luz, luz@ivt.tugraz.at, IVT, Graz University of Technology
+'   Markus Quaritsch, markus.quaritsch@tugraz.at, IVT, Graz University of Technology
+'   Martin Rexeis, rexeis@ivt.tugraz.at, IVT, Graz University of Technology
+'   Gérard Silberholz, silberholz@ivt.tugraz.at, IVT, Graz University of Technology
+'
+
 
 Public Class cDelaunayMap
+	Public ptDim As Integer
 
-    Public ptDim As Integer
+	Public ptList As List(Of dPoint)
+	Private lDT As List(Of dTriangle)
+	Private planes As List(Of Double())
 
-    Public ptList As List(Of dPoint)
-    Private lDT As List(Of dTriangle)
-    Private planes As List(Of Double())
+	Public DualMode As Boolean
+	Private ReadOnly ptListXZ As List(Of dPoint)
+	Private planesXZ As List(Of Double())
+	Private lDTXZ As List(Of dTriangle)
 
-    Public DualMode As Boolean
-    Private ptListXZ As List(Of dPoint)
-    Private planesXZ As List(Of Double())
-    Private lDTXZ As List(Of dTriangle)
-
-    Public ExtrapolError As Boolean
+	Public ExtrapolError As Boolean
 
 
-    Public Sub New()
-        ptList = New List(Of dPoint)
-        ptListXZ = New List(Of dPoint)
-        DualMode = False
-    End Sub
+	Public Sub New()
+		ptList = New List(Of dPoint)
+		ptListXZ = New List(Of dPoint)
+		DualMode = False
+	End Sub
 
-    Public Sub AddPoints(ByVal X As Double, ByVal Y As Double, ByVal Z As Double)
-        ptList.Add(New dPoint(X, Y, Z))
-        If DualMode Then ptListXZ.Add(New dPoint(X, Z, Y))
-    End Sub
+	Public Sub AddPoints(X As Double, Y As Double, Z As Double)
+		ptList.Add(New dPoint(X, Y, Z))
+		If DualMode Then ptListXZ.Add(New dPoint(X, Z, Y))
+	End Sub
 
-    Public Function Triangulate() As Boolean
-        Dim tr As dTriangle
-        Dim DT As dTriangulation
+	Public Function Triangulate() As Boolean
+		Dim tr As dTriangle
+		Dim DT As dTriangulation
 
-        ptDim = ptList.Count - 1
+		ptDim = ptList.Count - 1
 
-        'XY-triangulation
-        Try
-            DT = New dTriangulation
-            lDT = DT.Triangulate(ptList)
-        Catch ex As Exception
-            Return False
-        End Try
+		'XY-triangulation
+		Try
+			DT = New dTriangulation
+			lDT = DT.Triangulate(ptList)
+		Catch ex As Exception
+			Return False
+		End Try
 
-        planes = New List(Of Double())
+		planes = New List(Of Double())
 
-        For Each tr In lDT
-            planes.Add(GetPlane(tr))
-        Next
-
+		For Each tr In lDT
+			planes.Add(GetPlane(tr))
+		Next
 
 
 		Dim i As Int16
@@ -70,290 +87,284 @@ Public Class cDelaunayMap
 		Next
 
 
+		'XZ-triangulation
+		If DualMode Then
 
-        'XZ-triangulation
-        If DualMode Then
+			If ptDim <> ptListXZ.Count - 1 Then Return False
 
-            If ptDim <> ptListXZ.Count - 1 Then Return False
+			Try
+				DT = New dTriangulation
+				lDTXZ = DT.Triangulate(ptListXZ)
+			Catch ex As Exception
+				Return False
+			End Try
 
-            Try
-                DT = New dTriangulation
-                lDTXZ = DT.Triangulate(ptListXZ)
-            Catch ex As Exception
-                Return False
-            End Try
+			planesXZ = New List(Of Double())
 
-            planesXZ = New List(Of Double())
+			For Each tr In lDTXZ
+				planesXZ.Add(GetPlane(tr))
+			Next
 
-            For Each tr In lDTXZ
-                planesXZ.Add(GetPlane(tr))
-            Next
+		End If
 
-        End If
+		Return True
+	End Function
 
-        Return True
-
-    End Function
-
-    'XY => Z Interpolation
-    Public Function Intpol(ByVal x As Double, ByVal y As Double) As Double
+	'XY => Z Interpolation
+	Public Function Intpol(x As Double, y As Double) As Double
 		Dim j As Integer
 		Dim jmin As Integer
-        Dim l0 As Double()
+		Dim l0 As Double()
 		Dim tr As dTriangle
-        Dim dist As Double
-        Dim distmin As Double
+		Dim dist As Double
+		Dim distmin As Double
 
-        ExtrapolError = False
+		ExtrapolError = False
 
-        'Try exact solution for IsInside()
-        j = -1
-        For Each tr In lDT
-            j += 1
-            If IsInside(tr, x, y, True) Then
-                l0 = planes(j)
-                Return (l0(3) - x * l0(0) - y * l0(1)) / l0(2)
-            End If
-        Next
+		'Try exact solution for IsInside()
+		j = -1
+		For Each tr In lDT
+			j += 1
+			If IsInside(tr, x, y, True) Then
+				l0 = planes(j)
+				Return (l0(3) - x * l0(0) - y * l0(1)) / l0(2)
+			End If
+		Next
 
-        'Try approx. solution (fixes rounding errors when points lies exactly on an edge of a triangle)
-        j = -1
-        For Each tr In lDT
-            j += 1
-            If IsInside(tr, x, y, False) Then
-                l0 = planes(j)
-                Return (l0(3) - x * l0(0) - y * l0(1)) / l0(2)
-            End If
-        Next
+		'Try approx. solution (fixes rounding errors when points lies exactly on an edge of a triangle)
+		j = -1
+		For Each tr In lDT
+			j += 1
+			If IsInside(tr, x, y, False) Then
+				l0 = planes(j)
+				Return (l0(3) - x * l0(0) - y * l0(1)) / l0(2)
+			End If
+		Next
 
-        ''Extrapolation
-        'distmin = 99999
-        'j = -1
-        'jmin = 0
-        'Debug.Print("x=" & x & ", y=" & y)
-        'For Each tr In lDT
-        '	j += 1
-        '	dist = GetDistance(tr, x, y)
-        '	If dist < distmin Then
-        '		distmin = dist
-        '		jmin = j
-        '	End If
-        '	Debug.Print(j & ", " & dist)
-        'Next
+		''Extrapolation
+		'distmin = 99999
+		'j = -1
+		'jmin = 0
+		'Debug.Print("x=" & x & ", y=" & y)
+		'For Each tr In lDT
+		'	j += 1
+		'	dist = GetDistance(tr, x, y)
+		'	If dist < distmin Then
+		'		distmin = dist
+		'		jmin = j
+		'	End If
+		'	Debug.Print(j & ", " & dist)
+		'Next
 
-        'l0 = planes(jmin)
-        'Return (l0(3) - x * l0(0) - y * l0(1)) / l0(2)
+		'l0 = planes(jmin)
+		'Return (l0(3) - x * l0(0) - y * l0(1)) / l0(2)
 
-        '      Return Nothing
-
-
-        WorkerMsg(tMsgID.Err, "Delaunay interpolation method: No extrapolation allowed.")
-        ExtrapolError = True
-        Return -1000
-
-    End Function
-
-    'XZ => Y Interpolation
-    Public Function IntpolXZ(ByVal x As Double, ByVal z As Double) As Double
-        Dim j As Integer
-        Dim l0 As Double()
-        Dim tr As dTriangle
-
-        ExtrapolError = False
-
-        If DualMode Then
-
-            'Try exact solution for IsInside()
-            j = -1
-            For Each tr In lDTXZ
-                j += 1
-                If IsInside(tr, x, z, True) Then
-                    l0 = planesXZ(j)
-                    Return (l0(3) - x * l0(0) - z * l0(1)) / l0(2)
-                End If
-            Next
-
-            'Try approx. solution (fixes rounding errors when points lies exactly on an edge of a triangle)
-            j = -1
-            For Each tr In lDTXZ
-                j += 1
-                If IsInside(tr, x, z, False) Then
-                    l0 = planesXZ(j)
-                    Return (l0(3) - x * l0(0) - z * l0(1)) / l0(2)
-                End If
-            Next
-
-            'ERROR: Extrapolation
-            ExtrapolError = True
-            Return Nothing
-
-        Else
-
-            'ERROR: Extrapolation
-            ExtrapolError = True
-            Return Nothing
-
-        End If
-    End Function
-
-    Private Function GetPlane(ByRef tr As dTriangle) As Double()
-        Dim AB As dPoint
-        Dim AC As dPoint
-        Dim cross As dPoint
-        Dim l(3) As Double
-        Dim pt1 As dPoint
-        Dim pt2 As dPoint
-        Dim pt3 As dPoint
-
-        pt1 = tr.P1
-        pt2 = tr.P2
-        pt3 = tr.P3
-
-        AB = New dPoint(pt2.X - pt1.X, pt2.Y - pt1.Y, pt2.Z - pt1.Z)
-        AC = New dPoint(pt3.X - pt1.X, pt3.Y - pt1.Y, pt3.Z - pt1.Z)
-
-        cross = New dPoint(AB.Y * AC.Z - AB.Z * AC.Y, AB.Z * AC.X - AB.X * AC.Z, AB.X * AC.Y - AB.Y * AC.X)
-
-        l(0) = cross.X
-        l(1) = cross.Y
-        l(2) = cross.Z
-
-        l(3) = pt1.X * cross.X + pt1.Y * cross.Y + pt1.Z * cross.Z
-
-        Return l
-
-    End Function
-
-    Private Function IsInside(ByRef tr As dTriangle, ByVal xges As Double, ByVal yges As Double, ByVal Exact As Boolean) As Boolean
-        Dim v0(1) As Double
-        Dim v1(1) As Double
-        Dim v2(1) As Double
-        Dim dot00 As Double
-        Dim dot01 As Double
-        Dim dot02 As Double
-        Dim dot11 As Double
-        Dim dot12 As Double
-        Dim invDenom As Double
-        Dim u As Double
-        Dim v As Double
-        Dim pt1 As dPoint
-        Dim pt2 As dPoint
-        Dim pt3 As dPoint
-
-        pt1 = tr.P1
-        pt2 = tr.P2
-        pt3 = tr.P3
-
-        'Quelle: http://www.blackpawn.com/texts/pointinpoly/default.html  (Barycentric Technique)
-
-        ' Compute vectors        
-        v0(0) = pt3.X - pt1.X
-        v0(1) = pt3.Y - pt1.Y
-
-        v1(0) = pt2.X - pt1.X
-        v1(1) = pt2.Y - pt1.Y
-
-        v2(0) = xges - pt1.X
-        v2(1) = yges - pt1.Y
-
-        ' Compute dot products
-        dot00 = v0(0) * v0(0) + v0(1) * v0(1)
-        dot01 = v0(0) * v1(0) + v0(1) * v1(1)
-        dot02 = v0(0) * v2(0) + v0(1) * v2(1)
-        dot11 = v1(0) * v1(0) + v1(1) * v1(1)
-        dot12 = v1(0) * v2(0) + v1(1) * v2(1)
-
-        ' Compute barycentric coordinates
-        invDenom = 1 / (dot00 * dot11 - dot01 * dot01)
-        u = (dot11 * dot02 - dot01 * dot12) * invDenom
-        v = (dot00 * dot12 - dot01 * dot02) * invDenom
-
-        'Debug.Print(u & ", " & v & ", " & u + v)
-
-        ' Check if point is in triangle
-        If Exact Then
-            Return (u >= 0) And (v >= 0) And (u + v <= 1)
-        Else
-            'original values
-            'Return (u >= -0.001) And (v >= -0.001) And (u + v <= 1.001)
-            Return (u >= -0.01) And (v >= -0.01) And (u + v <= 1.01)
-        End If
-
-    End Function
-
-    Private Function GetDistance(ByRef tr As dTriangle, ByVal xges As Double, ByVal yges As Double) As Double
-        Dim v0(1) As Double
-        Dim v1(1) As Double
-        Dim v2(1) As Double
-        Dim dot00 As Double
-        Dim dot01 As Double
-        Dim dot02 As Double
-        Dim dot11 As Double
-        Dim dot12 As Double
-        Dim invDenom As Double
-        Dim u As Double
-        Dim v As Double
-        Dim pt1 As dPoint
-        Dim pt2 As dPoint
-        Dim pt3 As dPoint
-        Dim dist As Double
-
-        pt1 = tr.P1
-        pt2 = tr.P2
-        pt3 = tr.P3
-
-        ' Compute vectors        
-        v0(0) = pt3.X - pt1.X
-        v0(1) = pt3.Y - pt1.Y
-
-        v1(0) = pt2.X - pt1.X
-        v1(1) = pt2.Y - pt1.Y
-
-        v2(0) = xges - pt1.X
-        v2(1) = yges - pt1.Y
-
-        ' Compute dot products
-        dot00 = v0(0) * v0(0) + v0(1) * v0(1)
-        dot01 = v0(0) * v1(0) + v0(1) * v1(1)
-        dot02 = v0(0) * v2(0) + v0(1) * v2(1)
-        dot11 = v1(0) * v1(0) + v1(1) * v1(1)
-        dot12 = v1(0) * v2(0) + v1(1) * v2(1)
-
-        ' Compute barycentric coordinates
-        invDenom = 1 / (dot00 * dot11 - dot01 * dot01)
-        u = (dot11 * dot02 - dot01 * dot12) * invDenom
-        v = (dot00 * dot12 - dot01 * dot02) * invDenom
+		'      Return Nothing
 
 
-        If v < 0 Then
-            If u < 0 Then
-                dist = ((yges - pt1.Y) ^ 2 + (xges - pt1.X) ^ 2) ^ 0.5
+		WorkerMsg(tMsgID.Err, "Delaunay interpolation method: No extrapolation allowed.")
+		ExtrapolError = True
+		Return -1000
+	End Function
 
-            ElseIf u > 1 Then
-                dist = ((yges - pt3.Y) ^ 2 + (xges - pt3.X) ^ 2) ^ 0.5
+	'XZ => Y Interpolation
+	Public Function IntpolXZ(x As Double, z As Double) As Double
+		Dim j As Integer
+		Dim l0 As Double()
+		Dim tr As dTriangle
 
-            Else
-                dist = DistPtToLine(pt1, pt3, xges, yges)
-            End If
+		ExtrapolError = False
 
-        ElseIf u < 0 Then
+		If DualMode Then
 
-            If v > 1 Then
-                dist = ((yges - pt2.Y) ^ 2 + (xges - pt2.X) ^ 2) ^ 0.5
-            Else
-                dist = DistPtToLine(pt1, pt2, xges, yges)
-            End If
+			'Try exact solution for IsInside()
+			j = -1
+			For Each tr In lDTXZ
+				j += 1
+				If IsInside(tr, x, z, True) Then
+					l0 = planesXZ(j)
+					Return (l0(3) - x * l0(0) - z * l0(1)) / l0(2)
+				End If
+			Next
 
-        Else 'u + v > 1
-            dist = DistPtToLine(pt3, pt2, xges, yges)
+			'Try approx. solution (fixes rounding errors when points lies exactly on an edge of a triangle)
+			j = -1
+			For Each tr In lDTXZ
+				j += 1
+				If IsInside(tr, x, z, False) Then
+					l0 = planesXZ(j)
+					Return (l0(3) - x * l0(0) - z * l0(1)) / l0(2)
+				End If
+			Next
 
-        End If
+			'ERROR: Extrapolation
+			ExtrapolError = True
+			Return Nothing
 
-        Return Math.Abs(dist)
+		Else
 
-    End Function
+			'ERROR: Extrapolation
+			ExtrapolError = True
+			Return Nothing
 
-	Private Function DistPtToLine(ByRef pt1 As dPoint, ByRef pt2 As dPoint, ByVal x As Double, ByVal y As Double) As Double
+		End If
+	End Function
+
+	Private Function GetPlane(ByRef tr As dTriangle) As Double()
+		Dim AB As dPoint
+		Dim AC As dPoint
+		Dim cross As dPoint
+		Dim l(3) As Double
+		Dim pt1 As dPoint
+		Dim pt2 As dPoint
+		Dim pt3 As dPoint
+
+		pt1 = tr.P1
+		pt2 = tr.P2
+		pt3 = tr.P3
+
+		AB = New dPoint(pt2.X - pt1.X, pt2.Y - pt1.Y, pt2.Z - pt1.Z)
+		AC = New dPoint(pt3.X - pt1.X, pt3.Y - pt1.Y, pt3.Z - pt1.Z)
+
+		cross = New dPoint(AB.Y * AC.Z - AB.Z * AC.Y, AB.Z * AC.X - AB.X * AC.Z, AB.X * AC.Y - AB.Y * AC.X)
+
+		l(0) = cross.X
+		l(1) = cross.Y
+		l(2) = cross.Z
+
+		l(3) = pt1.X * cross.X + pt1.Y * cross.Y + pt1.Z * cross.Z
+
+		Return l
+	End Function
+
+	Private Function IsInside(ByRef tr As dTriangle, xges As Double, yges As Double, Exact As Boolean) As Boolean
+		Dim v0(1) As Double
+		Dim v1(1) As Double
+		Dim v2(1) As Double
+		Dim dot00 As Double
+		Dim dot01 As Double
+		Dim dot02 As Double
+		Dim dot11 As Double
+		Dim dot12 As Double
+		Dim invDenom As Double
+		Dim u As Double
+		Dim v As Double
+		Dim pt1 As dPoint
+		Dim pt2 As dPoint
+		Dim pt3 As dPoint
+
+		pt1 = tr.P1
+		pt2 = tr.P2
+		pt3 = tr.P3
+
+		'Quelle: http://www.blackpawn.com/texts/pointinpoly/default.html  (Barycentric Technique)
+
+		' Compute vectors        
+		v0(0) = pt3.X - pt1.X
+		v0(1) = pt3.Y - pt1.Y
+
+		v1(0) = pt2.X - pt1.X
+		v1(1) = pt2.Y - pt1.Y
+
+		v2(0) = xges - pt1.X
+		v2(1) = yges - pt1.Y
+
+		' Compute dot products
+		dot00 = v0(0) * v0(0) + v0(1) * v0(1)
+		dot01 = v0(0) * v1(0) + v0(1) * v1(1)
+		dot02 = v0(0) * v2(0) + v0(1) * v2(1)
+		dot11 = v1(0) * v1(0) + v1(1) * v1(1)
+		dot12 = v1(0) * v2(0) + v1(1) * v2(1)
+
+		' Compute barycentric coordinates
+		invDenom = 1 / (dot00 * dot11 - dot01 * dot01)
+		u = (dot11 * dot02 - dot01 * dot12) * invDenom
+		v = (dot00 * dot12 - dot01 * dot02) * invDenom
+
+		'Debug.Print(u & ", " & v & ", " & u + v)
+
+		' Check if point is in triangle
+		If Exact Then
+			Return (u >= 0) And (v >= 0) And (u + v <= 1)
+		Else
+			'original values
+			'Return (u >= -0.001) And (v >= -0.001) And (u + v <= 1.001)
+			Return (u >= -0.01) And (v >= -0.01) And (u + v <= 1.01)
+		End If
+	End Function
+
+	Private Function GetDistance(ByRef tr As dTriangle, xges As Double, yges As Double) As Double
+		Dim v0(1) As Double
+		Dim v1(1) As Double
+		Dim v2(1) As Double
+		Dim dot00 As Double
+		Dim dot01 As Double
+		Dim dot02 As Double
+		Dim dot11 As Double
+		Dim dot12 As Double
+		Dim invDenom As Double
+		Dim u As Double
+		Dim v As Double
+		Dim pt1 As dPoint
+		Dim pt2 As dPoint
+		Dim pt3 As dPoint
+		Dim dist As Double
+
+		pt1 = tr.P1
+		pt2 = tr.P2
+		pt3 = tr.P3
+
+		' Compute vectors        
+		v0(0) = pt3.X - pt1.X
+		v0(1) = pt3.Y - pt1.Y
+
+		v1(0) = pt2.X - pt1.X
+		v1(1) = pt2.Y - pt1.Y
+
+		v2(0) = xges - pt1.X
+		v2(1) = yges - pt1.Y
+
+		' Compute dot products
+		dot00 = v0(0) * v0(0) + v0(1) * v0(1)
+		dot01 = v0(0) * v1(0) + v0(1) * v1(1)
+		dot02 = v0(0) * v2(0) + v0(1) * v2(1)
+		dot11 = v1(0) * v1(0) + v1(1) * v1(1)
+		dot12 = v1(0) * v2(0) + v1(1) * v2(1)
+
+		' Compute barycentric coordinates
+		invDenom = 1 / (dot00 * dot11 - dot01 * dot01)
+		u = (dot11 * dot02 - dot01 * dot12) * invDenom
+		v = (dot00 * dot12 - dot01 * dot02) * invDenom
+
+
+		If v < 0 Then
+			If u < 0 Then
+				dist = ((yges - pt1.Y) ^ 2 + (xges - pt1.X) ^ 2) ^ 0.5
+
+			ElseIf u > 1 Then
+				dist = ((yges - pt3.Y) ^ 2 + (xges - pt3.X) ^ 2) ^ 0.5
+
+			Else
+				dist = DistPtToLine(pt1, pt3, xges, yges)
+			End If
+
+		ElseIf u < 0 Then
+
+			If v > 1 Then
+				dist = ((yges - pt2.Y) ^ 2 + (xges - pt2.X) ^ 2) ^ 0.5
+			Else
+				dist = DistPtToLine(pt1, pt2, xges, yges)
+			End If
+
+		Else 'u + v > 1
+			dist = DistPtToLine(pt3, pt2, xges, yges)
+
+		End If
+
+		Return Math.Abs(dist)
+	End Function
+
+	Private Function DistPtToLine(ByRef pt1 As dPoint, ByRef pt2 As dPoint, x As Double, y As Double) As Double
 		Dim dist As Double
 		Dim d01 As Double
 		Dim d02 As Double
@@ -368,243 +379,230 @@ Public Class cDelaunayMap
 		ElseIf d02 > d12 Then
 			dist = d01
 		Else
-			dist = Math.Abs((pt2.Y - pt1.Y) * x - (pt2.X - pt1.X) * y + pt2.X * pt1.Y - pt2.Y * pt1.X) / ((pt2.Y - pt1.Y) ^ 2 + (pt2.X - pt1.X) ^ 2) ^ 0.5
+			dist = Math.Abs((pt2.Y - pt1.Y) * x - (pt2.X - pt1.X) * y + pt2.X * pt1.Y - pt2.Y * pt1.X) /
+				   ((pt2.Y - pt1.Y) ^ 2 + (pt2.X - pt1.X) ^ 2) ^ 0.5
 		End If
 
 		Return dist
-
 	End Function
 
 
+	Public Class dPoint
+		Public X As Double
+		Public Y As Double
+		Public Z As Double
 
-    Public Class dPoint
-        Public X As Double
-        Public Y As Double
-        Public Z As Double
+		Public Sub New(xd As Double, yd As Double, zd As Double)
+			X = xd
+			Y = yd
+			Z = zd
+		End Sub
 
-        Public Sub New(ByVal xd As Double, ByVal yd As Double, ByVal zd As Double)
-            X = xd
-            Y = yd
-            Z = zd
-        End Sub
+		Public Shared Operator =(left As dPoint, right As dPoint) As Boolean
 
-        Public Shared Operator =(left As dPoint, right As dPoint) As Boolean
+			'If DirectCast(left, Object) = DirectCast(right, Object) Then
+			'    Return True
+			'End If
 
-            'If DirectCast(left, Object) = DirectCast(right, Object) Then
-            '    Return True
-            'End If
+			'If (DirectCast(left, Object) Is Nothing) OrElse (DirectCast(right, Object) Is Nothing) Then
+			'    Return False
+			'End If
 
-            'If (DirectCast(left, Object) Is Nothing) OrElse (DirectCast(right, Object) Is Nothing) Then
-            '    Return False
-            'End If
+			' Just compare x and y here...
+			If left.X <> right.X Then
+				Return False
+			End If
 
-            ' Just compare x and y here...
-            If left.X <> right.X Then
-                Return False
-            End If
+			If left.Y <> right.Y Then
+				Return False
+			End If
 
-            If left.Y <> right.Y Then
-                Return False
-            End If
+			Return True
+		End Operator
 
-            Return True
+		Public Shared Operator <>(left As dPoint, right As dPoint) As Boolean
+			Return Not (left = right)
+		End Operator
+	End Class
 
-        End Operator
+	Public Class dTriangle
+		Public P1 As dPoint
+		Public P2 As dPoint
+		Public P3 As dPoint
 
-        Public Shared Operator <>(left As dPoint, right As dPoint) As Boolean
-            Return Not (left = right)
-        End Operator
+		Public Sub New(ByRef pp1 As dPoint, ByRef pp2 As dPoint, ByRef pp3 As dPoint)
+			P1 = pp1
+			P2 = pp2
+			P3 = pp3
+		End Sub
 
+		Public Function ContainsInCircumcircle(pt As dPoint) As Double
+			Dim ax As Double = Me.P1.X - pt.X
+			Dim ay As Double = Me.P1.Y - pt.Y
+			Dim bx As Double = Me.P2.X - pt.X
+			Dim by As Double = Me.P2.Y - pt.Y
+			Dim cx As Double = Me.P3.X - pt.X
+			Dim cy As Double = Me.P3.Y - pt.Y
+			Dim det_ab As Double = ax * by - bx * ay
+			Dim det_bc As Double = bx * cy - cx * by
+			Dim det_ca As Double = cx * ay - ax * cy
+			Dim a_squared As Double = ax * ax + ay * ay
+			Dim b_squared As Double = bx * bx + by * by
+			Dim c_squared As Double = cx * cx + cy * cy
 
-    End Class
+			Return a_squared * det_bc + b_squared * det_ca + c_squared * det_ab
+		End Function
 
-    Public Class dTriangle
-        Public P1 As dPoint
-        Public P2 As dPoint
-        Public P3 As dPoint
+		Public Function SharesVertexWith(triangle As dTriangle) As Boolean
+			If Me.P1.X = triangle.P1.X AndAlso Me.P1.Y = triangle.P1.Y Then
+				Return True
+			End If
+			If Me.P1.X = triangle.P2.X AndAlso Me.P1.Y = triangle.P2.Y Then
+				Return True
+			End If
+			If Me.P1.X = triangle.P3.X AndAlso Me.P1.Y = triangle.P3.Y Then
+				Return True
+			End If
 
-        Public Sub New(ByRef pp1 As dPoint, ByRef pp2 As dPoint, ByRef pp3 As dPoint)
-            P1 = pp1
-            P2 = pp2
-            P3 = pp3
-        End Sub
+			If Me.P2.X = triangle.P1.X AndAlso Me.P2.Y = triangle.P1.Y Then
+				Return True
+			End If
+			If Me.P2.X = triangle.P2.X AndAlso Me.P2.Y = triangle.P2.Y Then
+				Return True
+			End If
+			If Me.P2.X = triangle.P3.X AndAlso Me.P2.Y = triangle.P3.Y Then
+				Return True
+			End If
 
-        Public Function ContainsInCircumcircle(pt As dPoint) As Double
-            Dim ax As Double = Me.P1.X - pt.X
-            Dim ay As Double = Me.P1.Y - pt.Y
-            Dim bx As Double = Me.P2.X - pt.X
-            Dim by As Double = Me.P2.Y - pt.Y
-            Dim cx As Double = Me.P3.X - pt.X
-            Dim cy As Double = Me.P3.Y - pt.Y
-            Dim det_ab As Double = ax * by - bx * ay
-            Dim det_bc As Double = bx * cy - cx * by
-            Dim det_ca As Double = cx * ay - ax * cy
-            Dim a_squared As Double = ax * ax + ay * ay
-            Dim b_squared As Double = bx * bx + by * by
-            Dim c_squared As Double = cx * cx + cy * cy
+			If Me.P3.X = triangle.P1.X AndAlso Me.P3.Y = triangle.P1.Y Then
+				Return True
+			End If
+			If Me.P3.X = triangle.P2.X AndAlso Me.P3.Y = triangle.P2.Y Then
+				Return True
+			End If
+			If Me.P3.X = triangle.P3.X AndAlso Me.P3.Y = triangle.P3.Y Then
+				Return True
+			End If
 
-            Return a_squared * det_bc + b_squared * det_ca + c_squared * det_ab
+			Return False
+		End Function
+	End Class
 
-        End Function
+	Public Class dEdge
+		Public StartPoint As dPoint
+		Public EndPoint As dPoint
 
-        Public Function SharesVertexWith(triangle As dTriangle) As Boolean
-            If Me.P1.X = triangle.P1.X AndAlso Me.P1.Y = triangle.P1.Y Then
-                Return True
-            End If
-            If Me.P1.X = triangle.P2.X AndAlso Me.P1.Y = triangle.P2.Y Then
-                Return True
-            End If
-            If Me.P1.X = triangle.P3.X AndAlso Me.P1.Y = triangle.P3.Y Then
-                Return True
-            End If
+		Public Sub New(ByRef p1 As dPoint, ByRef p2 As dPoint)
+			StartPoint = p1
+			EndPoint = p2
+		End Sub
 
-            If Me.P2.X = triangle.P1.X AndAlso Me.P2.Y = triangle.P1.Y Then
-                Return True
-            End If
-            If Me.P2.X = triangle.P2.X AndAlso Me.P2.Y = triangle.P2.Y Then
-                Return True
-            End If
-            If Me.P2.X = triangle.P3.X AndAlso Me.P2.Y = triangle.P3.Y Then
-                Return True
-            End If
+		Public Shared Operator =(left As dEdge, right As dEdge) As Boolean
+			'If DirectCast(left, Object) = DirectCast(right, Object) Then
+			'    Return True
+			'End If
 
-            If Me.P3.X = triangle.P1.X AndAlso Me.P3.Y = triangle.P1.Y Then
-                Return True
-            End If
-            If Me.P3.X = triangle.P2.X AndAlso Me.P3.Y = triangle.P2.Y Then
-                Return True
-            End If
-            If Me.P3.X = triangle.P3.X AndAlso Me.P3.Y = triangle.P3.Y Then
-                Return True
-            End If
+			'If (DirectCast(left, Object) Is Nothing) Or (DirectCast(right, Object) Is Nothing) Then
+			'    Return False
+			'End If
 
-            Return False
-        End Function
+			Return _
+				((left.StartPoint = right.StartPoint AndAlso left.EndPoint = right.EndPoint) OrElse
+				 (left.StartPoint = right.EndPoint AndAlso left.EndPoint = right.StartPoint))
+		End Operator
 
-    End Class
+		Public Shared Operator <>(left As dEdge, right As dEdge) As Boolean
+			Return Not (left = right)
+		End Operator
+	End Class
 
-    Public Class dEdge
-        Public StartPoint As dPoint
-        Public EndPoint As dPoint
+	Public Class dTriangulation
+		Public Function Triangulate(triangulationPoints As List(Of dPoint)) As List(Of dTriangle)
+			If triangulationPoints.Count < 3 Then
+				Throw New ArgumentException("Can not triangulate less than three vertices!")
+			End If
 
-        Public Sub New(ByRef p1 As dPoint, ByRef p2 As dPoint)
-            StartPoint = p1
-            EndPoint = p2
-        End Sub
-
-        Public Shared Operator =(left As dEdge, right As dEdge) As Boolean
-            'If DirectCast(left, Object) = DirectCast(right, Object) Then
-            '    Return True
-            'End If
-
-            'If (DirectCast(left, Object) Is Nothing) Or (DirectCast(right, Object) Is Nothing) Then
-            '    Return False
-            'End If
-
-            Return ((left.StartPoint = right.StartPoint AndAlso left.EndPoint = right.EndPoint) OrElse (left.StartPoint = right.EndPoint AndAlso left.EndPoint = right.StartPoint))
-        End Operator
-
-        Public Shared Operator <>(left As dEdge, right As dEdge) As Boolean
-            Return Not (left = right)
-        End Operator
-
-
-    End Class
-
-    Public Class dTriangulation
-
-        Public Function Triangulate(triangulationPoints As List(Of dPoint)) As List(Of dTriangle)
-            If triangulationPoints.Count < 3 Then
-                Throw New ArgumentException("Can not triangulate less than three vertices!")
-            End If
-
-            ' The triangle list
-            Dim triangles As New List(Of dTriangle)()
+			' The triangle list
+			Dim triangles As New List(Of dTriangle)()
 
 
+			' The "supertriangle" which encompasses all triangulation points.
+			' This triangle initializes the algorithm and will be removed later.
+			Dim superTriangle As dTriangle = Me.SuperTriangle(triangulationPoints)
+			triangles.Add(superTriangle)
 
-            ' The "supertriangle" which encompasses all triangulation points.
-            ' This triangle initializes the algorithm and will be removed later.
-            Dim superTriangle As dTriangle = Me.SuperTriangle(triangulationPoints)
-            triangles.Add(superTriangle)
+			' Include each point one at a time into the existing triangulation
+			For i = 0 To triangulationPoints.Count - 1
+				' Initialize the edge buffer.
+				Dim EdgeBuffer As New List(Of dEdge)()
 
-            ' Include each point one at a time into the existing triangulation
-            For i As Integer = 0 To triangulationPoints.Count - 1
-                ' Initialize the edge buffer.
-                Dim EdgeBuffer As New List(Of dEdge)()
+				' If the actual vertex lies inside the circumcircle, then the three edges of the 
+				' triangle are added to the edge buffer and the triangle is removed from list.                             
+				For j As Integer = triangles.Count - 1 To 0 Step -1
+					Dim t As dTriangle = triangles(j)
+					If t.ContainsInCircumcircle(triangulationPoints(i)) > 0 Then
+						EdgeBuffer.Add(New dEdge(t.P1, t.P2))
+						EdgeBuffer.Add(New dEdge(t.P2, t.P3))
+						EdgeBuffer.Add(New dEdge(t.P3, t.P1))
+						triangles.RemoveAt(j)
+					End If
+				Next
 
-                ' If the actual vertex lies inside the circumcircle, then the three edges of the 
-                ' triangle are added to the edge buffer and the triangle is removed from list.                             
-                For j As Integer = triangles.Count - 1 To 0 Step -1
-                    Dim t As dTriangle = triangles(j)
-                    If t.ContainsInCircumcircle(triangulationPoints(i)) > 0 Then
-                        EdgeBuffer.Add(New dEdge(t.P1, t.P2))
-                        EdgeBuffer.Add(New dEdge(t.P2, t.P3))
-                        EdgeBuffer.Add(New dEdge(t.P3, t.P1))
-                        triangles.RemoveAt(j)
-                    End If
-                Next
+				' Remove duplicate edges. This leaves the convex hull of the edges.
+				' The edges in this convex hull are oriented counterclockwise!
+				For j As Integer = EdgeBuffer.Count - 2 To 0 Step -1
+					For k As Integer = EdgeBuffer.Count - 1 To j + 1 Step -1
+						If EdgeBuffer(j) = EdgeBuffer(k) Then
+							EdgeBuffer.RemoveAt(k)
+							EdgeBuffer.RemoveAt(j)
+							k -= 1
+							Continue For
+						End If
+					Next
+				Next
 
-                ' Remove duplicate edges. This leaves the convex hull of the edges.
-                ' The edges in this convex hull are oriented counterclockwise!
-                For j As Integer = EdgeBuffer.Count - 2 To 0 Step -1
-                    For k As Integer = EdgeBuffer.Count - 1 To j + 1 Step -1
-                        If EdgeBuffer(j) = EdgeBuffer(k) Then
-                            EdgeBuffer.RemoveAt(k)
-                            EdgeBuffer.RemoveAt(j)
-                            k -= 1
-                            Continue For
-                        End If
-                    Next
-                Next
+				' Generate new counterclockwise oriented triangles filling the "hole" in
+				' the existing triangulation. These triangles all share the actual vertex.
+				For j = 0 To EdgeBuffer.Count - 1
+					triangles.Add(New dTriangle(EdgeBuffer(j).StartPoint, EdgeBuffer(j).EndPoint, triangulationPoints(i)))
+				Next
+			Next
 
-                ' Generate new counterclockwise oriented triangles filling the "hole" in
-                ' the existing triangulation. These triangles all share the actual vertex.
-                For j As Integer = 0 To EdgeBuffer.Count - 1
-                    triangles.Add(New dTriangle(EdgeBuffer(j).StartPoint, EdgeBuffer(j).EndPoint, triangulationPoints(i)))
-                Next
-            Next
+			' We don't want the supertriangle in the triangulation, so
+			' remove all triangles sharing a vertex with the supertriangle.
+			For i As Integer = triangles.Count - 1 To 0 Step -1
+				If triangles(i).SharesVertexWith(superTriangle) Then
+					triangles.RemoveAt(i)
+				End If
+			Next
 
-            ' We don't want the supertriangle in the triangulation, so
-            ' remove all triangles sharing a vertex with the supertriangle.
-            For i As Integer = triangles.Count - 1 To 0 Step -1
-                If triangles(i).SharesVertexWith(superTriangle) Then
-                    triangles.RemoveAt(i)
-                End If
-            Next
-
-            ' Return the triangles
-            Return triangles
-        End Function
-
+			' Return the triangles
+			Return triangles
+		End Function
 
 
+		Private Function SuperTriangle(triangulationPoints As List(Of dPoint)) As dTriangle
+			Dim M As Double = triangulationPoints(0).X
 
-        Private Function SuperTriangle(triangulationPoints As List(Of dPoint)) As dTriangle
-            Dim M As Double = triangulationPoints(0).X
+			' get the extremal x and y coordinates
+			For i = 1 To triangulationPoints.Count - 1
+				Dim xAbs As Double = Math.Abs(triangulationPoints(i).X)
+				Dim yAbs As Double = Math.Abs(triangulationPoints(i).Y)
+				If xAbs > M Then
+					M = xAbs
+				End If
+				If yAbs > M Then
+					M = yAbs
+				End If
+			Next
 
-            ' get the extremal x and y coordinates
-            For i As Integer = 1 To triangulationPoints.Count - 1
-                Dim xAbs As Double = Math.Abs(triangulationPoints(i).X)
-                Dim yAbs As Double = Math.Abs(triangulationPoints(i).Y)
-                If xAbs > M Then
-                    M = xAbs
-                End If
-                If yAbs > M Then
-                    M = yAbs
-                End If
-            Next
+			' make a triangle
+			Dim sp1 As New dPoint(10 * M, 0, 0)
+			Dim sp2 As New dPoint(0, 10 * M, 0)
+			Dim sp3 As New dPoint(-10 * M, -10 * M, 0)
 
-            ' make a triangle
-            Dim sp1 As New dPoint(10 * M, 0, 0)
-            Dim sp2 As New dPoint(0, 10 * M, 0)
-            Dim sp3 As New dPoint(-10 * M, -10 * M, 0)
-
-            Return New dTriangle(sp1, sp2, sp3)
-        End Function
-
-    End Class
-
-
+			Return New dTriangle(sp1, sp2, sp3)
+		End Function
+	End Class
 End Class
 
