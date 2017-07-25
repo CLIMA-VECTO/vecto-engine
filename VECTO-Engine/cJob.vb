@@ -241,7 +241,7 @@ Public Class cJob
 		'If Not MAP.WriteFLD(OutPath & fFILE(MapFile, False) & "_" & fFILE(FlcFile, False) & ".vfld") Then Return False
 		'If Not MAP.WriteFLD(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Model & "_" & CertNumber & "_FLC.vfld", True) Then Return False
 		'If Not WriteTransFile(OutPath & "WHTC-Correction-Factors.xml") Then Return False
-		MAP.WriteXmlComponentFile(OutPath & Manufacturer & "_" & Model & "_" & ".xml",
+		MAP.WriteXmlComponentFile(OutPath & Manufacturer & "_" & Model & ".xml",
 								  fFILE(FlcFile, False), Me)
 
 		'RpmWarnings()

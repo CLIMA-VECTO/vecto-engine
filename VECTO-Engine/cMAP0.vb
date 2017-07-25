@@ -1232,9 +1232,14 @@ lbInt:
 
 lbInt:
 		'Interpolation
+		'  !!!!!  ATTENTION: use second point from motoring curve, since first point is located 100 Nm below real motoring curve
 		Return _
-			(nU - rpm0) * (RPMlists(rpm).MapPoints.First.Tq - RPMlists(rpm0).MapPoints.First.Tq) / (rpm - rpm0) +
-			RPMlists(rpm0).MapPoints.First.Tq
+			(nU - rpm0) * (RPMlists(rpm).MapPoints(1).Tq - RPMlists(rpm0).MapPoints(1).Tq) / (rpm - rpm0) +
+			RPMlists(rpm0).MapPoints(1).Tq
+
+		' OLD VERSION, using first point which is wrong
+		'(nU - rpm0) * (RPMlists(rpm).MapPoints.First.Tq - RPMlists(rpm0).MapPoints.First.Tq) / (rpm - rpm0) +
+		'RPMlists(rpm0).MapPoints.First.Tq()
 	End Function
 
 	Private Sub CalcFlcOut()
