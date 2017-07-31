@@ -1129,7 +1129,7 @@ lbEr:
 														  New XElement(tns + "Displacement", job.Displacement),
 														  New XElement(tns + "IdlingSpeed", job.Idle),
 														  New XElement(tns + "RatedSpeed", job.RatedSpeed),
-														  New XElement(tns + "RatedPower", job.RatedPower),
+														  New XElement(tns + "RatedPower", job.RatedPower * 1000),
 														  New XElement(tns + "MaxEngineTorque", FLC.TqMax.ToString("F0")),
 														  New XElement(tns + "WHTCUrban", job.WHTCurbanFactor.ToString("f4")),
 														  New XElement(tns + "WHTCRural", job.WHTCruralFactor.ToString("f4")),
