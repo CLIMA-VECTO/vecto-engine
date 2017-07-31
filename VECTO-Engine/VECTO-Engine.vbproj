@@ -49,6 +49,9 @@
   <PropertyGroup>
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Resources\F_ENG.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="ivtlic">
       <HintPath>J:\TE-Em\Emissionsmodelle\Lizenzen\Lizenz-DLL\bin\Release\ivtlic.dll</HintPath>

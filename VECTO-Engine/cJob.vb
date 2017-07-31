@@ -237,9 +237,13 @@ Public Class cJob
 		'Write output files
 		WorkerMsg(tMsgID.Normal, "Writing XML output file")
 		'If Not MAP.WriteMap(OutPath & fFILE(MapFile, False) & "_mod.vmap") Then Return False
-		'If Not MAP.WriteMap(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Model & "_" & CertNumber & "_FCmap.vmap") Then Return False
+#If DEBUG Then
+        If Not MAP.WriteMap(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Model & "_" & CertNumber & "_FCmap.vmap") Then Return False
+#End If
 		'If Not MAP.WriteFLD(OutPath & fFILE(MapFile, False) & "_" & fFILE(FlcFile, False) & ".vfld") Then Return False
-		'If Not MAP.WriteFLD(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Model & "_" & CertNumber & "_FLC.vfld", True) Then Return False
+#If DEBUG Then
+        If Not MAP.WriteFLD(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Model & "_" & CertNumber & "_FLC.vfld", True) Then Return False
+#End If
 		'If Not WriteTransFile(OutPath & "WHTC-Correction-Factors.xml") Then Return False
 		MAP.WriteXmlComponentFile(OutPath & Manufacturer & "_" & Model & ".xml",
 								  fFILE(FlcFile, False), Me)
