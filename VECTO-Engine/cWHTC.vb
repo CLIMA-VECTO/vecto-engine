@@ -61,8 +61,8 @@ Public Class cWHTC
         Dim nU As Double
         Dim Tq As Double
 
-		Dim theAssembly As Assembly = Assembly.GetExecutingAssembly()
-		Dim resource As Stream = theAssembly.GetManifestResourceStream("VECTO_Engine.WHTC.csv")
+		'Dim theAssembly As Assembly = Assembly.GetExecutingAssembly()
+		Dim resource As Stream = ResourceHelper.ReadStream("VECTO_Engine.WHTC.csv") ' theAssembly.GetManifestResourceStream("VECTO_Engine.WHTC.csv")
 
 		If IsNothing(resource) Then
 			Throw New Exception("WHTC data not found")
