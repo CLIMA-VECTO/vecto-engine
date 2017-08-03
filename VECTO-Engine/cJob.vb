@@ -71,6 +71,16 @@ Public Class cJob
 
 	Public PT1 As cPT1
 
+	Public Sub New()
+		'Fill values for standard NCVs in global dictionary
+		NCV_std.Add("Diesel / CI", 42.7)
+		NCV_std.Add("Ethanol / CI", 25.7)
+		NCV_std.Add("Petrol / PI", 41.5)
+		NCV_std.Add("Ethanol / PI", 29.1)
+		NCV_std.Add("LPG / PI", 46.0)
+		NCV_std.Add("Natural Gas / PI", 45.1)
+	End Sub
+
 	Public Function Run() As Boolean
 
 		'Initialize Warning counter
@@ -238,15 +248,18 @@ Public Class cJob
 		WorkerMsg(tMsgID.Normal, "Writing XML output file")
 		'If Not MAP.WriteMap(OutPath & fFILE(MapFile, False) & "_mod.vmap") Then Return False
 #If DEBUG Then
-        If Not MAP.WriteMap(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Model & "_" & CertNumber & "_FCmap.vmap") Then Return False
+		If Not MAP.WriteMap(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Model & "_" & CertNumber & "_FCmap.vmap") _
+			Then Return False
 #End If
 		'If Not MAP.WriteFLD(OutPath & fFILE(MapFile, False) & "_" & fFILE(FlcFile, False) & ".vfld") Then Return False
 #If DEBUG Then
-        If Not MAP.WriteFLD(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Model & "_" & CertNumber & "_FLC.vfld", True) Then Return False
+		If _
+			Not MAP.WriteFLD(OutPath & "UNOFFICIAL_OUTPUT_" & Manufacturer & "_" & Model & "_" & CertNumber & "_FLC.vfld", True) _
+			Then Return False
 #End If
 		'If Not WriteTransFile(OutPath & "WHTC-Correction-Factors.xml") Then Return False
-		MAP.WriteXmlComponentFile(OutPath & Manufacturer & "_" & Model & ".xml",
-								  fFILE(FlcFile, False), Me)
+		Dim outgenerated = MAP.WriteXmlComponentFile(OutPath & Manufacturer & "_" & Model & ".xml",
+													 fFILE(FlcFile, False), Me)
 
 		'RpmWarnings()
 		'RpmWarningsGearshifting()
@@ -260,17 +273,7 @@ Public Class cJob
 					  " Warning(s) occured: Please check detailled descriptions in 'Message Window'!")
 		End If
 
-
-		'Messagebox: VALID DESPITE OF WARNINGS
-		MsgBox(
-			"DATA EVALUATION IS COMPLETED." & Chr(13) & Chr(13) &
-			"The results produced are valid for certification despite any warnings displayed in the message window!" & Chr(13) &
-			Chr(13) &
-			"Nevertheless, causes for warnings shall be analyzed together with the Technical Service or Type Approval Authority.",
-			MsgBoxStyle.Information, MsgBoxStyle.OkOnly)
-
-
-		Return True
+		Return outgenerated
 	End Function
 
 

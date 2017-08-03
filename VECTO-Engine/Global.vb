@@ -29,7 +29,7 @@
 '
 Imports System.ComponentModel
 
-Module GlobalDefinitions
+Public Module GlobalDefinitions
 	Public Const AppVersion As String = "1.4"
 	Public Const AppName As String = "VECTO-Engine"
 	Public Const AppVersionForm As String = " 1.4"
