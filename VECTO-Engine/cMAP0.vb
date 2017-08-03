@@ -29,6 +29,7 @@
 '
 Imports System.IO
 Imports System.Xml
+Imports System.Xml.Schema
 Imports TUGraz.VectoHashing
 
 Public Class cMAP0
@@ -1050,7 +1051,7 @@ lbEr:
 		End If
 	End Function
 
-	Public Sub WriteXmlComponentFile(filename As String, model As String, job As cJob)
+	Public Function WriteXmlComponentFile(filename As String, model As String, job As cJob) As Boolean
 
 		Dim SchemaLocationBaseUrl = "https://webgate.ec.europa.eu/CITnet/svn/VECTO/trunk/Share/XML/XSD/"
 		Dim SchemaVersion = "1.0"
@@ -1147,15 +1148,44 @@ lbEr:
 								)
 				   )
 
-		Dim stream = New MemoryStream()
-		Dim writer = New StreamWriter(stream)
-		writer.Write(report)
-		writer.Flush()
-		stream.Seek(0, SeekOrigin.Begin)
-		Dim h As VectoHash = VectoHash.Load(stream)
-		Dim finalReport = h.AddHash()
-		finalReport.Save(filename)
+		Try
+			Dim stream = New MemoryStream()
+			Dim writer = New StreamWriter(stream)
+			writer.Write(report)
+			writer.Flush()
+			stream.Seek(0, SeekOrigin.Begin)
+			Dim h As VectoHash = VectoHash.Load(stream)
+			Dim finalReport = h.AddHash()
+			finalReport.Validate(GetXMLSchema(), New ValidationEventHandler(AddressOf ValidationCallBack))
+
+			finalReport.Save(filename)
+		Catch e As Exception
+			WorkerMsg(tMsgID.Err, "Generated XML is not valid - no output!")
+			'MsgBox("Failed to generate XML: " + e.Message)
+			Return False
+		End Try
+		Return True
+	End Function
+
+
+	Private Shared Sub ValidationCallBack(sender As Object, args As ValidationEventArgs)
+
+		If (args.Severity = XmlSeverityType.Error) Then
+			Throw New Exception(String.Format("Validation error: {0}" + Environment.NewLine +
+											  "Line: {1}", args.Message, args.Exception.LineNumber))
+		End If
 	End Sub
+
+	Private Shared Function GetXMLSchema() As XmlSchemaSet
+		Dim resource As Stream = LoadResourceAsStream(ResourceType.XMLSchema,
+													  "VectoComponent.xsd")
+		Dim xset = New XmlSchemaSet()
+		xset.XmlResolver = New XmlResourceResolver()
+		Dim reader As XmlReader = XmlReader.Create(resource, New XmlReaderSettings(), "schema://")
+		xset.Add(XmlSchema.Read(reader, Nothing))
+		xset.Compile()
+		Return xset
+	End Function
 
 	Private Function GetXMLFuelTypeString(fuelType As String) As String
 		' input: "Diesel / CI", "Ethanol / CI", "Petrol / PI", "Ethanol / PI", "LPG / PI", "Natural Gas / PI"
