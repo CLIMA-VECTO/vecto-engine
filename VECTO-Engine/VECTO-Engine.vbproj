@@ -53,9 +53,6 @@
     <ApplicationIcon>Resources\F_ENG.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ivtlic">
-      <HintPath>J:\TE-Em\Emissionsmodelle\Lizenzen\Lizenz-DLL\bin\Release\ivtlic.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>E:\repositories\VECTO-Git\VECTO\Third Party Libraries\JSON.Net\Bin\Net40\Newtonsoft.Json.dll</HintPath>
