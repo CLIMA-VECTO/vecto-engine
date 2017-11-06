@@ -8,9 +8,8 @@ Imports ivtlic
 Public Class Form1
 	Private Job As cJob
 	Private JobSuccess As Boolean
-	Public Lic As New cLicense
 
-	Private JobPrecalc As cJobPrecalc
+    Private JobPrecalc As cJobPrecalc
 
 
 	Private Sub Form1_Load(sender As Object, e As EventArgs) Handles Me.Load
@@ -19,30 +18,7 @@ Public Class Form1
 
 		Worker = Me.BgWorker
 
-		' Licencemodul
-		Lic.FilePath = MyAppPath & "License.dat"
-		Lic.AppCode = AppName
-		Lic.AppVersion = AppVersion
-
-#If DEBUG Then
-		Const LicCheck = False
-#Else
-		Const LicCheck as Boolean = True
-#End If
-
-		'Lizenz checken
-		If LicCheck And Not Lic.LICcheck() Then
-			MsgBox(Lic.FailMsg, MsgBoxStyle.Critical)
-			Lic.CreateActFile(MyAppPath & "ActivationCode.dat")
-			MsgBox("Activation code created under: " & MyAppPath & "ActivationCode.dat")
-			Me.Close()
-		End If
-
-		' Abfragen ob Ablauf der License bevorsteht
-		If Lic.TimeWarn Then
-			WorkerMsg(tMsgID.Warn, "!!!     License expiring date (y/m/d): " & Lic.ExpTime & "     !!!")
-		End If
-	End Sub
+    End Sub
 
 	Private Sub BtStart_Click(sender As Object, e As EventArgs) Handles BtStart.Click
 

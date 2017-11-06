@@ -48,10 +48,10 @@ Public Module GlobalDefinitions
 
 	Public NumWarnings As Integer
 	Public CalcMode As Integer = 0
-	Public NCV_std As New Dictionary(Of String, Double)
 
 
-	Public Sub WorkerMsg(MsgType As tMsgID, Msg As String, Optional ByVal MsgSrc As String = "",
+
+    Public Sub WorkerMsg(MsgType As tMsgID, Msg As String, Optional ByVal MsgSrc As String = "",
 						 Optional ByVal FilePath As String = "")
 		Dim WorkMsg As New cWorkerMsg
 
