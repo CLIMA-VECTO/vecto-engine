@@ -68,20 +68,22 @@ Public Class cJob
 	Public WHTCmotorwayFactor As Double
 	Public ColdHotBalancingFactor As Double
 
+    Public NCV_std As New Dictionary(Of String, Double)
 
-	Public PT1 As cPT1
+    Public PT1 As cPT1
 
-	Public Sub New()
-		'Fill values for standard NCVs in global dictionary
-		NCV_std.Add("Diesel / CI", 42.7)
-		NCV_std.Add("Ethanol / CI", 25.7)
-		NCV_std.Add("Petrol / PI", 41.5)
-		NCV_std.Add("Ethanol / PI", 29.1)
-		NCV_std.Add("LPG / PI", 46.0)
-		NCV_std.Add("Natural Gas / PI", 45.1)
-	End Sub
+    Public Sub New()
+        NCV_std = New Dictionary(Of String, Double)
+        'Fill values for standard NCVs in global dictionary
+        NCV_std.Add("Diesel / CI", 42.7)
+        NCV_std.Add("Ethanol / CI", 25.7)
+        NCV_std.Add("Petrol / PI", 41.5)
+        NCV_std.Add("Ethanol / PI", 29.1)
+        NCV_std.Add("LPG / PI", 46.0)
+        NCV_std.Add("Natural Gas / PI", 45.1)
+    End Sub
 
-	Public Function Run() As Boolean
+    Public Function Run() As Boolean
 
 		'Initialize Warning counter
 		NumWarnings = 0
