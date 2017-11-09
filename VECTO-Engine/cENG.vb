@@ -210,7 +210,7 @@ Public Class cENG
 
 		'Header
 		dic = New Dictionary(Of String, Object)
-		dic.Add("CreatedBy", "VECTO-Engine " & AppVersion)
+		dic.Add("CreatedBy", "VECTO-Engine " & VectoEngineVersion.VersionNumber)
 		dic.Add("Date", Now.ToString)
 		dic.Add("FileVersion", FormatVersion)
 		JSON.Content.Add("Header", dic)
