@@ -1,0 +1,11 @@
+﻿<#+
+int GetBuildNumber()
+{
+	return (int)(DateTime.UtcNow - new DateTime(2015, 1, 1)).TotalDays;
+}
+
+string GetVectoEngineVersionNumber()
+{
+	return "1.4.3." + GetBuildNumber();
+}
+#>

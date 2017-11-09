@@ -1,0 +1,5 @@
+﻿<#@ output extension=".vb"#>
+<#@ include file="VersionNumber.t4" once="true" #>
+Imports System.Reflection
+<Assembly: AssemblyVersion("<#= GetVectoEngineVersionNumber() #>")>
+<Assembly: AssemblyFileVersion("<#= GetVectoEngineVersionNumber() #>")>

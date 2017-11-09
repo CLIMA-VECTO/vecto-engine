@@ -1,0 +1,98 @@
+<Project DefaultTargets = "Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
+  <PropertyGroup>
+	<CleanDependsOn>
+		$(CleanDependsOn)
+		CleanVectoDeploy
+	</CleanDependsOn>
+  </PropertyGroup>
+  
+    <UsingTask TaskName="Zip" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+  <ParameterGroup>
+    <OutputFilename ParameterType="System.String" Required="true" />
+    <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+	<SourcePath ParameterType="System.String" Required="true"/>
+	<DestinationPath ParameterType="System.String" Required="true"/>
+  </ParameterGroup>
+  <Task>
+    <Reference Include="System.IO.Compression" />
+    <Using Namespace="System.IO.Compression" />
+    <Code Type="Fragment" Language="cs">
+    <![CDATA[
+      try
+      {
+        using (Stream zipStream = new FileStream(Path.GetFullPath(OutputFilename), FileMode.Create, FileAccess.Write))
+        using (ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
+        {
+            foreach (ITaskItem fileItem in Files)
+            {
+                string filename = fileItem.ItemSpec;
+                using (Stream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read))
+				using (Stream fileStreamInZip = archive.CreateEntry(fileItem.ItemSpec.Replace(SourcePath, DestinationPath)).Open())
+                    fileStream.CopyTo(fileStreamInZip);
+            }
+        }
+        return true;
+      }
+      catch (Exception ex)
+      {
+        Log.LogErrorFromException(ex);
+        return false;
+      }
+    ]]>
+    </Code>
+  </Task>
+</UsingTask>
+
+<Target Name="GenerateReleasenotesPDF" BeforeTargets="AfterBuild"  Condition="$(Configuration) == 'Deploy'">  
+	<Message Text="Generating User Manual"/>
+	<Exec Command="cscript &quot;$(solutiondir)documentation\convertpptxtopdf.vbs&quot; &quot;$(solutiondir)Documentation\TUG_VECTO_Engine_Manual.pptx&quot; &quot;$(solutiondir)Documentation\TUG_VECTO_Engine_Manual.pdf&quot;"/>  
+</Target>  
+<!-- <Target Name="GenerateHelpHTML" BeforeTargets="AfterBuild"  Condition="$(Configuration) == 'Deploy'">   -->
+	<!-- <Message Text="Generating Help"/> -->
+	<!-- <Exec Command="&quot;$(solutiondir)documentation\user manual\convert.bat&quot;" WorkingDirectory="$(solutiondir)documentation\user manual"/>   -->
+	<!-- <Exec Command="&quot;$(solutiondir)documentation\VectoHashingTool\convert.bat&quot;" WorkingDirectory="$(solutiondir)documentation\VectoHashingTool"/>   -->
+<!-- </Target>   -->
+
+<Target Name="AfterBuild" Condition="$(Configuration) == 'Deploy'">
+	<ItemGroup>  
+		<VectoEngine Include="$(OutputPath)VECTO-Engine.exe"/>
+		<DemoInputData Include="$(SolutionDir)Demo input data\Demo_*_v1.4.csv"/>
+		<DemoInputData Include="$(SolutionDir)Demo input data\GUI_input.jpg"/>
+		<UserManual Include="$(SolutionDir)Documentation\TUG_VECTO_Engine_Manual.pdf"/>
+	</ItemGroup>
+	
+	<Copy SourceFiles="@(DemoInputData)" DestinationFolder="$(OutputPath)\Demo input data"/>
+	<Copy SourceFiles="@(UserManual)" DestinationFolder="$(OutputPath)" />
+	<ItemGroup>
+		<ZipFiles Include="$(OutputPath)Demo input data\**\*.*" />
+		<ZipFiles Include="$(OutputPath)TUG_VECTO_Engine_Manual.pdf" />
+	</ItemGroup>
+
+	<GetAssemblyIdentity  AssemblyFiles="@(VectoEngine)">
+		<Output  TaskParameter="Assemblies"  ItemName="VectoEngineAssemblyIdentities"  />
+	</GetAssemblyIdentity>
+	<ItemGroup>
+		<ZipFiles Include="$(OutputPath)VECTO-Engine.exe" />
+		<ZipFiles Include="$(OutputPath)VectoCommon.dll"/>
+		<ZipFiles Include="$(OutputPath)VectoHashing.dll"/>
+	</ItemGroup>
+	<PropertyGroup>
+		<CurrentDate>$([System.DateTime]::Now.ToString(yyy_MM_dd))</CurrentDate>
+	</PropertyGroup>
+	<Message Text="Creating ZIP, CurrentDate: $(CurrentDate)"/>
+	<Zip OutputFilename="$(SolutionDir)$(CurrentDate)-VECTO-Engine_%(VectoEngineAssemblyIdentities.Version).zip" Files="@(ZipFiles)" SourcePath="$(OutputPath)" DestinationPath="$(CurrentDate)-VECTO-Engine_%(VectoEngineAssemblyIdentities.Version)\"/>
+</Target>
+
+<Target Name="CleanVectoDeploy" Condition="$(Configuration) == 'Deploy'">
+	<ItemGroup>
+		<CustomFilesToClean Include="$(OutputPath)TUG_VECTO_Engine_Manual.pdf" />
+		<CustomFilesToClean Include="$(OutputPath)Demo input data\**\*" />
+		<CustomFoldersToClean Include="%(CustomFilesToClean.RootDir)%(CustomFilesToClean.Directory)"/>
+	</ItemGroup>
+	<!-- <Message Text="@(CustomFilesToClean)" Importance="normal"/> -->
+	<!-- <Message Text="@(CustomFoldersToClean)" Importance="normal"/> -->
+	<Delete Files="@CustomFilesToClean"/>
+	<RemoveDir Directories="@(CustomFoldersToClean)"/>
+</Target>
+
+</Project>

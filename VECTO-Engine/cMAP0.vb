@@ -1126,7 +1126,7 @@ lbEr:
 																	   XmlConvert.ToString(DateTime.Now,
 																						   XmlDateTimeSerializationMode.
 																							  Utc)),
-														  New XElement(tns + "AppVersion", AppName & " " & AppVersionForm),
+														  New XElement(tns + "AppVersion", VectoEngineVersion.FullVersion),
 														  New XElement(tns + "Displacement", job.Displacement),
 														  New XElement(tns + "IdlingSpeed", job.Idle),
 														  New XElement(tns + "RatedSpeed", job.RatedSpeed),
