@@ -4,7 +4,7 @@ Public Module VectoEngineVersion
 
 	Public ReadOnly Property VersionNumber as String
         get
-            return "1.4.3.1042"
+            return "1.4.3.1043"
         end get
     end Property
 
